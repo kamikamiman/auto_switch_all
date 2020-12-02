@@ -26,7 +26,7 @@
 /******************************************************/
 /***   指定したメンバーの予定を取得し、在席リストに書込む   ***/
 /******************************************************/
-function AutoSwitch() {
+function AutoSwitchTest() {
   
   const member = ["上倉健太", "後藤　勉"];        // メンバーを指定
   const membersObj = ReadDataTest(member);     // 当日、翌日の予定
@@ -39,46 +39,42 @@ function AutoSwitch() {
 /**************************************************/
 /***   指定した時間にスクリプトを実行するトリガー設定   ***/
 /**************************************************/
+function startTriggerTest() {
+  
+  const time = new Date();
+  time.setHours(8);
+  time.setMinutes(25);
+  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
 
+}
 
+// プロジェクトトリガーで実行
+function mtgStartTriggerTest(){
+  
+  const time = new Date();
+  time.setHours(10);
+  time.setMinutes(01);
+  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
 
+}
 
-//function AutoSwitchTest() {
-//  
-//    const time = new Date();
-//  time.setHours(8);
-//  time.setMinutes(25);
-//  ScriptApp.newTrigger('AutoSwitch').timeBased().at(time).create();
-//
-//}
-//
-//// プロジェクトトリガーで実行
-//function mtgStartTrigger(){
-//  
-//  const time = new Date();
-//  time.setHours(10);
-//  time.setMinutes(01);
-//  ScriptApp.newTrigger('AutoSwitch').timeBased().at(time).create();
-//
-//}
-//
-//// プロジェクトトリガーで実行
-//function mtgEndTrigger(){
-//  
-//  const time = new Date();
-//  time.setHours(11);
-//  time.setMinutes(01);
-//  ScriptApp.newTrigger('AutoSwitch').timeBased().at(time).create();
-//
-//}
-//
-//// プロジェクトトリガーで実行
-//function endTrigger(){
-//
-//  const time = new Date();
-//  time.setHours(17);
-//  time.setMinutes(30);
-//  ScriptApp.newTrigger('AutoSwitch').timeBased().at(time).create();
-//
-//  
-//}
+// プロジェクトトリガーで実行
+function mtgEndTriggerTest(){
+  
+  const time = new Date();
+  time.setHours(11);
+  time.setMinutes(01);
+  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
+
+}
+
+// プロジェクトトリガーで実行
+function endTriggerTest(){
+
+  const time = new Date();
+  time.setHours(17);
+  time.setMinutes(30);
+  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
+
+  
+}
