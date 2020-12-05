@@ -1,4 +1,4 @@
-function ReadDataTest(member) {
+function ReadDataTest() {
   
     // スプレットシートを取得（データ読出し用）
   const ssGet = SpreadsheetApp.openById('1Wf2nEZEh4YfiKSfn2iNfBIs8hcxsFdYBBI8o6vwJYxY'); // 【サービス作業予定表】
@@ -45,8 +45,9 @@ function ReadDataTest(member) {
   const nextLastRow = nextSchedule.getRange('A:A').getLastRow();                      // 最終列番号
   const nextMembers = nextSchedule.getRange(1, 1, nextLastRow, 1).getValues().flat(); // メンバー情報
 
+  
+  let membersObj = []; // メンバーオブジェクトを格納する配列
 
-  // [ 関数 ] メンバーのオブジェクトを作成
   function MemberObj(name, rowNum, nextRowNum, contents, nextContents) {
     this.name = name;
     this.rowNum = rowNum;
@@ -55,13 +56,14 @@ function ReadDataTest(member) {
     this.nextContents = nextContents;
   }
 
-  let membersObj = []; // メンバーオブジェクトを格納する配列
 
-  member.forEach( (el) => {
+  target.forEach( (el) => {
                  
     const rowNum  = members.indexOf(el) + 1;           // memberの行番号（本日）
     const nextRowNum  = nextMembers.indexOf(el) + 1;   // memberの行番号（翌日）
     const obj = new MemberObj(el, rowNum, nextRowNum); // オブジェクト作成
+
+//    console.log(obj);
 
     const contents = schedule.getRange(obj.rowNum, dayNum, 1, 1).getValue();      // 本日のセル情報
     let nextContents;
@@ -78,7 +80,7 @@ function ReadDataTest(member) {
   
   });
   
-  console.log(membersObj); // ログ確認用(配列の中身)
+//  console.log(membersObj); // ログ確認用(配列の中身)
 
   return membersObj;       // 配列を返す 
   

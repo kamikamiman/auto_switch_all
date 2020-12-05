@@ -13,24 +13,24 @@
   出張 : 出張の文字が含まれるように記載する。
   休み : 休み・有給・振休・代休・RHのいずれかの文字が含まれるように記載する。
 
-
- [ AutoSwitch() 内の関数の説明 ] 
-   ・ ReadData(member) で指定した member の当日 ・ 翌日 の予定を取得する。
-     * return で totalContents を返す。
-   ・ WhiteData(member, totalContents) で指定した member の在席状態を変更する。
-     * totalContents は、member の 当日 ・ 翌日 の予定が配列で格納されている。
-
-
 */
+
+  const target     = [ "上倉健太", "後藤　勉" ]; // 自動切換えの対象者
+  const startOn    = [ "上倉健太", "後藤　勉" ]; // 始業切替えの対象者
+  const endOn      = [ "上倉健太", "後藤　勉" ]; // 終業切替えの対象者
+  const mtgStartOn = [ "上倉健太", "後藤　勉" ]; // 会議開始切替えの対象者
+  const mtgEndOn   = [ "上倉健太", "後藤　勉" ]; // 会議終了切替えの対象者
+  const detailOn   = [ "上倉健太", "後藤　勉" ]; // 詳細書込の対象者
+
 
 /******************************************************/
 /***   指定したメンバーの予定を取得し、在席リストに書込む   ***/
 /******************************************************/
 function AutoSwitchTest() {
   
-  const member = ["上倉健太", "後藤　勉"];        // メンバーを指定
-  const membersObj = ReadDataTest(member);     // 当日、翌日の予定
-  WhiteDataTest(...membersObj);                // 取得した予定を在席リストに書込
+  const membersObj = ReadDataTest(); // 当日、翌日の予定
+  
+  WhiteDataTest(...membersObj);      // 取得した予定を在席リストに書込
 
 }
 
@@ -39,6 +39,7 @@ function AutoSwitchTest() {
 /**************************************************/
 /***   指定した時間にスクリプトを実行するトリガー設定   ***/
 /**************************************************/
+
 function startTriggerTest() {
   
   const time = new Date();
