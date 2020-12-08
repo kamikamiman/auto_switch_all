@@ -5,7 +5,7 @@
 function ReadDataTest() {
   
   // スプレットシートを取得（データ読出し用）
-  const ssGet = SpreadsheetApp.openById('1Wf2nEZEh4YfiKSfn2iNfBIs8hcxsFdYBBI8o6vwJYxY'); // サービス作業予定表(ここにスプレットシートのアドレスを記入)
+  const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0oR4'); // サービス作業予定表(ここにスプレットシートのアドレスを記入)
     
   // 本日の月のシート情報を取得
   const date   = new Date();                                             // 日付を取得
@@ -57,27 +57,51 @@ function ReadDataTest() {
   class MemberObj {
     
     constructor(name, rowNum, nextRowNum) {
+      
       this.name = name;
       this.rowNum = rowNum;
       this.nextRowNum = nextRowNum;
+      
     }
     
-    // 本日の予定を取得 [ メソッド ]
-    memContents() {      
-      const contents = schedule.getRange(this.rowNum, dayNum, 1, 1).getValue();  // 本日のセル情報
+    
+    // 本日の予定 ・ セルの背景色 を取得 [ メソッド ]
+    memContents() {
+      
+      const selection = schedule.getRange(this.rowNum, dayNum, 1, 1); // 取得範囲
+      const contents = selection.getValue();                          // 本日の予定
+      const color = selection.getBackground();                        // セルの背景色
+      
       this.contents = contents;
+      this.color = color;
+      
     };
     
-    // 翌日の予定を取得 [ メソッド ]
+    
+    // 翌日の予定 ・ セルの背景色 を取得 [ メソッド ]
     memNextContents() {
+      
       let nextContents;
+      let selection     = schedule.getRange(this.rowNum, dayNum + 1, 1, 1);
+      let nextSelection = nextSchedule.getRange(this.nextRowNum, 2, 1, 1);
+      let nextColor;
+      
+      // 本日が月末以外だった場合
       if ( dayNum !== lastCol ) {
-        nextContents = schedule.getRange(this.rowNum, dayNum + 1, 1, 1).getValue();  // 本日が月末以外、翌日のセル情報を取得
+        nextContents = selection.getValue();       // 本日が月末以外、翌日の予定
+        nextColor = selection.getBackground();         // セルの背景色
+        
+      // 本日が月末だった場合
       } else {
-        nextContents = nextSchedule.getRange(this.nextRowNum, 2, 1, 1).getValue();   // 本日が月末、翌月初日のセル情報を取得
+        nextContents = nextSelection.getValue();   // 本日が月末、翌月初日の予定
+        nextColor = nextSelection.getBackground();     // セルの背景色
       }
+      
       this.nextContents = nextContents;
+      this.nextColor = nextColor;
+      
     };
+    
     
   };
 
@@ -85,13 +109,15 @@ function ReadDataTest() {
   //      配列 [ memberObj ] にメンバー毎のオブジェクトを追加                                                              //
   // ------------------------------------------------------------------------------------------------------------ //
   
-  let membersObj = [];   // メンバーオブジェクトを格納する配列
+  // メンバーオブジェクトを格納する配列
+  let membersObj = [];
+
 
   targets.forEach( (target) => {
     
-    // メンバーの行番号を取得(本日・翌日)
-    const rowNum  = members.indexOf(target) + 1;           // 行番号（本日）
-    const nextRowNum  = nextMembers.indexOf(target) + 1;   // 行番号（翌日）
+    // サービス予定表よりメンバーの行番号を取得 ( 本日 ・ 翌日 )
+    const rowNum  = members.indexOf(target) + 1;           // 行番号 （本日）
+    const nextRowNum  = nextMembers.indexOf(target) + 1;   // 行番号 （翌日）
 
     // オブジェクト作成
     const obj = new MemberObj(target, rowNum, nextRowNum); // オブジェクト{obj}作成
@@ -103,7 +129,7 @@ function ReadDataTest() {
 
   });
   
-  console.log(membersObj); // ログ確認用(メンバー毎のオブジェクト)
+//  console.log(membersObj); // ログ確認用(メンバー毎のオブジェクト)
 
   return membersObj;       // 配列を返す 
   

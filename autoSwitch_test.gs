@@ -16,12 +16,12 @@
 */
 
   // ここに対象者を記入
-  const targets    = [ "上倉健太", "後藤　勉" ]; // 自動切換
-  const starts     = [ "上倉健太", "後藤　勉" ]; // 始業切替
-  const ends       = [ "上倉健太", "後藤　勉" ]; // 終業切替
-  const mtgStarts  = [ "上倉健太", "後藤　勉" ]; // 会議開始切替
-  const mtgEnds    = [ "上倉健太", "後藤　勉" ]; // 会議終了切替
-  const details    = [ "上倉健太", "後藤　勉" ]; // 詳細書込
+  const targets    = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 自動切換
+  const starts     = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 始業切替
+  const ends       = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 終業切替
+  const mtgStarts  = [ "上倉健太", "後藤　勉" ];                     // 会議開始切替
+  const mtgEnds    = [ "上倉健太", "後藤　勉" ];                     // 会議終了切替
+  const details    = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 詳細書込
 
 
 /******************************************************/
@@ -31,7 +31,7 @@ function AutoSwitchTest() {
   
   const membersObj = ReadDataTest(); // 当日、翌日の予定
   
-  WhiteDataTest(...membersObj);      // 取得した予定を在席リストに書込
+  WriteDataTest(...membersObj);      // 取得した予定を在席リストに書込
 
 }
 
