@@ -4,8 +4,9 @@
 
 function ReadDataTest() {
   
-  // スプレットシートを取得（データ読出し用）
-  const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0oR4'); // サービス作業予定表(ここにスプレットシートのアドレスを記入)
+  // ------------------------------------------------------------------------------------------------------------ //
+  //       サービス予定表のシート情報                                                                                   //
+  // ------------------------------------------------------------------------------------------------------------ //  
     
   // 本日の月のシート情報を取得
   const date   = new Date();                                             // 日付を取得
@@ -49,6 +50,27 @@ function ReadDataTest() {
   const nextMembers = nextSchedule.getRange(1, 1, nextMonLastCol, 1).getValues().flat(); // メンバー情報
 
 
+  // ------------------------------------------------------------------------------------------------------------ //
+  //       在席リストのシート(切替設定)情報                                                                              //
+  // ------------------------------------------------------------------------------------------------------------ //  
+
+
+  // 対象者を取得
+  const SwitchSet  = ssSet.getSheetByName('切替設定');                                                 // シート(切替設定)
+  const lastRow = SwitchSet.getRange(1, 2).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();  // シートの最終行番号
+  const infoRanges = SwitchSet.getRange(2, 2, lastRow-1, 4).getValues();                             // 切替設定情報を取得
+
+  // 対象者を配列に追加
+  infoRanges.forEach( infoRange => {
+    targets.push(infoRange[0]);                               // 切替対象者を取得
+    if ( infoRange[1] === "有効" ) starts.push(infoRange[0]);  // 出社時
+    if ( infoRange[2] === "有効" ) ends.push(infoRange[0]);    // 退社時
+    if ( infoRange[3] === "有効" ) details.push(infoRange[0]); // 予定欄
+  });
+  
+
+//  console.log(targets, starts, ends, details);
+
 
   // ------------------------------------------------------------------------------------------------------------ //
   //       クラスでオブジェクトを作成                                                                                    //
@@ -66,7 +88,7 @@ function ReadDataTest() {
     
     
     // 本日の予定 ・ セルの背景色 を取得 [ メソッド ]
-    memContents() {
+    getContents() {
       
       const selection = schedule.getRange(this.rowNum, dayNum, 1, 1); // 取得範囲
       const contents = selection.getValue();                          // 本日の予定
@@ -79,7 +101,7 @@ function ReadDataTest() {
     
     
     // 翌日の予定 ・ セルの背景色 を取得 [ メソッド ]
-    memNextContents() {
+    getNextContents() {
       
       let nextContents;
       let selection     = schedule.getRange(this.rowNum, dayNum + 1, 1, 1);
@@ -103,6 +125,22 @@ function ReadDataTest() {
     };
     
     
+    // 自動切替設定の情報 を取得 [ メソッド ]
+    getSwitchSet() {
+    
+      // シート(自動切替)の名前と一致した場合、オブジェクトに切替設定を追加
+      infoRanges.forEach( infoRange => {
+        if ( infoRange[0] === this.name ) {
+          this.swStart  = infoRange[1];  // 出社時(有効・無効)
+          this.swEnd    = infoRange[2];  // 退社時(有効・無効)
+          this.swDetail = infoRange[3];  // 予定欄(有効・無効)
+        }
+      });   
+    
+    }
+    
+    
+    
   };
 
   // ------------------------------------------------------------------------------------------------------------ //
@@ -119,13 +157,18 @@ function ReadDataTest() {
     const rowNum  = members.indexOf(target) + 1;           // 行番号 （本日）
     const nextRowNum  = nextMembers.indexOf(target) + 1;   // 行番号 （翌日）
 
-    // オブジェクト作成
-    const obj = new MemberObj(target, rowNum, nextRowNum); // オブジェクト{obj}作成
-    obj.memContents();                                     // {obj} に本日の予定を追加
-    obj.memNextContents();                                 // {obj} に翌日の予定を追加
+    // オブジェクト作成(予定表に名前があるメンバーのみ実行)
+    if ( rowNum > 0 ) {
+      const obj = new MemberObj(target, rowNum, nextRowNum); // オブジェクト{obj}作成
+      obj.getContents();                                     // {obj} に本日の予定を追加
+      obj.getNextContents();                                 // {obj} に翌日の予定を追加
+      obj.getSwitchSet();                                    // {obj} に切替設定を追加
 
-    // {obj}を[memberObj]に追加
-    membersObj.push(obj);
+      // {obj}を[memberObj]に追加
+      membersObj.push(obj);
+    }
+
+//  console.log(obj); // ログ確認用(メンバー毎のオブジェクト)
 
   });
   

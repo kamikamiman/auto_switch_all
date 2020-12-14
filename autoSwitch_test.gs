@@ -1,5 +1,5 @@
 /*
-[ プログラム説明 ]
+  [ プログラム説明 ]
 
 ① プロジェクトトリガーで startTrigger() を実行する。 → 8:25 に AutoSwitch() が実行される。
    当日の在席状態を自動で変更する。
@@ -12,16 +12,28 @@
   外出 : 外出の文字が含まれるように記載する。
   出張 : 出張の文字が含まれるように記載する。
   休み : 休み・有給・振休・代休・RHのいずれかの文字が含まれるように記載する。
+  
+  
 
 */
 
-  // ここに対象者を記入
-  const targets    = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 自動切換
-  const starts     = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 始業切替
-  const ends       = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 終業切替
-  const mtgStarts  = [ "上倉健太", "後藤　勉" ];                     // 会議開始切替
-  const mtgEnds    = [ "上倉健太", "後藤　勉" ];                     // 会議終了切替
-  const details    = [ "上倉健太", "後藤　勉", "橋本　亮","森田敏彦" ]; // 詳細書込
+  // スプレットシートを取得（(ここにスプレットシートのアドレスを記入)）
+  const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0oR4'); // サービス作業予定表
+  const ssSet = SpreadsheetApp.openById('1Itid9HCrW0wy_ATM4lqBDzkQs64DpemrWL4THmOsEIg'); // 在席リスト
+
+
+
+
+
+  // 対象者を格納する配列( 切替対象者, 出社時, 退社時, 予定欄 )
+  const targets = []; // 切替対象者
+  const starts  = []; // 出社時
+  const ends    = []; // 退社時
+  const details = []; // 予定欄
+
+  // 期間限定(後で削除)
+  const mtgStarts  = [ "上倉健太", "後藤　勉" ];  // 会議開始切替
+  const mtgEnds    = [ "上倉健太", "後藤　勉" ];  // 会議終了切替
 
 
 /******************************************************/
@@ -41,6 +53,7 @@ function AutoSwitchTest() {
 /***   指定した時間にスクリプトを実行するトリガー設定       ***/
 /**************************************************/
 
+// プロジェクトトリガーで実行(出社時)
 function startTriggerTest() {
   
   const time = new Date();
@@ -50,7 +63,7 @@ function startTriggerTest() {
 
 }
 
-// プロジェクトトリガーで実行
+// プロジェクトトリガーで実行(iサーチ打ち合わせ開始)
 function mtgStartTriggerTest(){
   
   const time = new Date();
@@ -60,7 +73,7 @@ function mtgStartTriggerTest(){
 
 }
 
-// プロジェクトトリガーで実行
+// プロジェクトトリガーで実行(iサーチ内合わせ終了)
 function mtgEndTriggerTest(){
   
   const time = new Date();
@@ -70,13 +83,34 @@ function mtgEndTriggerTest(){
 
 }
 
-// プロジェクトトリガーで実行
+// プロジェクトトリガーで実行(退社時)
 function endTriggerTest(){
 
   const time = new Date();
   time.setHours(17);
   time.setMinutes(30);
   ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
-
-  
+ 
 }
+
+
+// プロジェクトトリガーで実行(フレックス 7:30)
+function flexTriggerTest() {
+
+ const time = new Date();
+  time.setHours(7);
+  time.setMinutes(30);
+  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
+
+
+
+}
+
+
+
+
+
+
+
+
+
