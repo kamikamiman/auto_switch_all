@@ -18,9 +18,8 @@ function ReadDataTest() {
                                       .replace('${nowMonth}', nowMonth));
   
   // 翌月の月のシート情報を取得
-  const nextDate = new Date();                                           // 日付を取得
-  nextDate.setDate(nextDate.getDate() + 1);                              // 明日の日付をセット
-  const nextMonth = Utilities.formatDate(nextDate, 'Asia/Tokyo', 'M');   // 明日の月を取得
+  const nextDate = new Date(date.setMonth(date.getMonth()+1));
+  const nextMonth = Utilities.formatDate(nextDate, 'Asia/Tokyo', 'M');
   const nextSchedule  = ssGet.getSheetByName('${period}期${nextMonth}月'
                                       .replace('${period}', period)
                                       .replace('${nextMonth}', nextMonth));
@@ -36,18 +35,31 @@ function ReadDataTest() {
   let dayNum;                                                            // 本日の日付の列番号
   days.forEach( getDay => {
      const day = Utilities.formatDate(getDay, 'Asia/Tokyo', 'M/d');
-     if( day === nowDay ) dayNum = nowDayNum;
+     if( day === nowDay ) dayNum = nowDayNum -1;
      nowDayNum += 1;
   });
 
 
+//  // 予定表のメンバー・予定を取得(今月)
+//  const monLastRow = schedule.getRange('A:A').getLastRow();                              // 最終行番号
+  const monLastCol = schedule.getLastColumn() -1;                                          // 最終列番号
+//  const members = schedule.getRange(1, 1, monLastRow, monLastCol).getValues().flat();    // メンバー情報
+//
+//  // 予定表のメンバー・予定を取得(翌月)
+//  const nextMonLastRow = nextSchedule.getRange('A:A').getLastRow();                               // 最終行番号
+  const nextMonLastCol = nextSchedule.getLastColumn() -1;                                           // 最終列番号
+//  const nextMembers = nextSchedule.getRange(1, 1, nextMonLastRow, monLastCol).getValues().flat(); // メンバー情報
+//
+//  console.log(monLastCol, nextMonLastCol);
+
+
   // 予定表のメンバーを取得(今月)
-  const monLastCol = schedule.getRange('A:A').getLastRow();                              // 最終列番号
-  const members = schedule.getRange(1, 1, monLastCol, 1).getValues().flat();             // メンバー情報
+  const monLastRow = schedule.getRange('A:A').getLastRow();                              // 最終行番号
+  const members = schedule.getRange(1, 1, monLastRow, 1).getValues().flat();             // メンバー情報
 
   // 予定表のメンバーを取得(来月)
-  const nextMonLastCol = nextSchedule.getRange('A:A').getLastRow();                      // 最終列番号
-  const nextMembers = nextSchedule.getRange(1, 1, nextMonLastCol, 1).getValues().flat(); // メンバー情報
+  const nextMonLastRow = nextSchedule.getRange('A:A').getLastRow();                      // 最終行番号
+  const nextMembers = nextSchedule.getRange(1, 1, nextMonLastRow, 1).getValues().flat(); // メンバー情報
 
 
   // ------------------------------------------------------------------------------------------------------------ //
@@ -88,41 +100,51 @@ function ReadDataTest() {
     
     
     // 本日の予定 ・ セルの背景色 を取得 [ メソッド ]
+    
     getContents() {
+
+      // 今月の予定を取得      
+      const selection = schedule.getRange(this.rowNum, 2, 1, monLastCol); // 取得範囲
+      const monContents = selection.getValues().flat();                   // 今月の予定(全て)
+      for( let i = 1; i < dayNum; i++ ) monContents.shift();              // 今月の予定(本日以降の予定)       
+      const monColor = selection.getBackgrounds().flat();                 // セルの背景色(全て)
+      for( let i = 1; i < dayNum; i++ ) monColor.shift();                 // セルの背景色(本日以降の予定)
+      const contents = monContents[0];                                    // 本日の予定
+      const color = monColor[0];                                          // 本日のセル背景色
       
-      const selection = schedule.getRange(this.rowNum, dayNum, 1, 1); // 取得範囲
-      const contents = selection.getValue();                          // 本日の予定
-      const color = selection.getBackground();                        // セルの背景色
+      // 翌月の予定を取得
+      const nextSelection = nextSchedule.getRange(this.nextRowNum, 2, 1, nextMonLastCol); // 取得範囲
+      const nextMonContents = nextSelection.getValues().flat();                           // 翌月の予定(全て)
+      const nextMonColor = nextSelection.getBackgrounds().flat();                         // セルの背景色
+      let nextContents, nextColor;
       
-      this.contents = contents;
-      this.color = color;
       
-    };
-    
-    
-    // 翌日の予定 ・ セルの背景色 を取得 [ メソッド ]
-    getNextContents() {
-      
-      let nextContents;
-      let selection     = schedule.getRange(this.rowNum, dayNum + 1, 1, 1);
-      let nextSelection = nextSchedule.getRange(this.nextRowNum, 2, 1, 1);
-      let nextColor;
-      
-      // 本日が月末以外だった場合
+      // 翌日の予定・セルの背景色を取得
       if ( dayNum !== lastCol ) {
-        nextContents = selection.getValue();       // 本日が月末以外、翌日の予定
-        nextColor = selection.getBackground();         // セルの背景色
-        
-      // 本日が月末だった場合
+        // 本日が月末以外の場合
+        nextContents = monContents[1];             // 翌日の予定
+        nextColor = monColor[1];                   // 翌日のセルの背景色       
+      
       } else {
-        nextContents = nextSelection.getValue();   // 本日が月末、翌月初日の予定
-        nextColor = nextSelection.getBackground();     // セルの背景色
+        // 本日が月末の場合
+        nextContents = nextMonContents[0];         // 翌日の予定
+        nextColor = nextMonColor[0];               // 翌日のセルの背景色
       }
       
-      this.nextContents = nextContents;
-      this.nextColor = nextColor;
       
+      // オブジェクトに追加
+      this.monContents = monContents;  // 今月の予定
+      this.monColor = monColor;        // 今月のセル背景色
+      this.contents = contents;        // 本日の予定
+      this.color = color;              // 本日のセル背景色
+      this.nextMonContents = nextMonContents;  // 翌月の予定
+      this.nextMonColor = nextMonColor;        // 翌月のセルの背景色
+      this.nextContents = nextContents;        // 翌日の予定
+      this.nextColor = nextColor;              // 翌日のセルの背景色
+      
+//      console.log(contents);
     };
+    
     
     
     // 自動切替設定の情報 を取得 [ メソッド ]
@@ -161,7 +183,6 @@ function ReadDataTest() {
     if ( rowNum > 0 ) {
       const obj = new MemberObj(target, rowNum, nextRowNum); // オブジェクト{obj}作成
       obj.getContents();                                     // {obj} に本日の予定を追加
-      obj.getNextContents();                                 // {obj} に翌日の予定を追加
       obj.getSwitchSet();                                    // {obj} に切替設定を追加
 
       // {obj}を[memberObj]に追加

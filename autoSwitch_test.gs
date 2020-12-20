@@ -21,10 +21,6 @@
   const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0oR4'); // サービス作業予定表
   const ssSet = SpreadsheetApp.openById('1Itid9HCrW0wy_ATM4lqBDzkQs64DpemrWL4THmOsEIg'); // 在席リスト
 
-
-
-
-
   // 対象者を格納する配列( 切替対象者, 出社時, 退社時, 予定欄 )
   const targets = []; // 切替対象者
   const starts  = []; // 出社時
