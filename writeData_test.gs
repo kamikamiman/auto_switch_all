@@ -38,10 +38,10 @@
 function WriteDataTest(...membersObj) {
   
    // スプレットシートを取得（データ書込み用）
-  const attendList = ssSet.getSheetByName('当日在席(69期)');                                                // シート1
-  const lastRow    = attendList.getRange('C:C').getLastRow();                                             // シート1の最終行番号
-  const offDayList = ssSet.getSheetByName('69期サービス土日休み');                                            // シート2
-  const offLastRow = offDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();   // シート2の最終行番号
+  const attendList = ssSet.getSheetByName('当日在席(69期)');                                                    // シート1
+  const lastRow    = attendList.getRange('C:C').getLastRow();                                                 // シート1の最終行番号
+  const offDayList = ssSet.getSheetByName('69期サービス土日休み');                                                // シート2
+  const offLastRow = offDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();       // シート2の最終行番号
   const isoOffDayList = ssSet.getSheetByName('isowa休日');                                                     // シート3
   const isoOffLastRow = isoOffDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow(); // シート3の最終行番号
 
@@ -73,18 +73,15 @@ function WriteDataTest(...membersObj) {
   membersR.forEach( memberR => membersNameR.push(memberR[0]));
   
   
-  // 休日パターンを取得
+  // メンバーの休日パターンを取得(シート２)  ( シート左列のメンバー + シート2記入メンバー ) >>> 土日休み
   const normalHolMems = offDayList.getRange(1, 1, offLastRow, 1).getValues().flat();    // 土日休みのメンバーを取得(サービス)
   const normalHolMembers = membersNameL.concat(normalHolMems);                          // 土日休みのメンバー(全員分・空白含む)
 
-
-
   // 休日 への切替判定を設定 (サービス予定表に設定文字の記入があるか)
-  const offDays = [ '休み', '有給', '有休', '振休', '振替', '代休', 'RH', 'ＲＨ', '完フレ', '完ﾌﾚ', '完全フレックス', '完全ﾌﾚｯｸｽ' ];  // 休日パターンを設定
+  const offDays = [ '休み', '有給', '有休', '振休', '振替', '代休', 'RH', 'ＲＨ', '完フレ', '完ﾌﾚ', '完全フレックス', '完全ﾌﾚｯｸｽ' ];
   
   // ISOWAの休日を取得(年末年始・GW等)
   const isowaOffDays = isoOffDayList.getRange(1,  1, isoOffLastRow, 1).getValues().flat(); // ISOWAの休日情報を取得
-  
   
   // 宿直パターンを設定(24時間サービス)
   const nightShtPatterns = [ '24', '24h', '24H', '２４', '２４ｈ', '２４Ｈ' ];
@@ -100,17 +97,27 @@ function WriteDataTest(...membersObj) {
   let setContents;  // 直近の状態
   let detail;       // 直近の予定
   
-  // メンバー情報を記入位置別で３つの配列に分ける。
+  // * メンバー情報を記入位置別で３つの配列に分ける。
   let memLeft   = [];
   let memCenter = [];
   let memRight  = [];
   
-  // 配列の書込先の列番号
+  // * 配列の書込先の列番号
   let posiL =  5; // memLeftの書込先の列番号
   let posiC = 10; // memCenterの書込先の列番号
   let posiR = 15; // memRightの書込み先の列番号
   
+  /* === 関連する変数 === /
+     membersL <> memLeft  内線番号 >>> シートの行番号 
   
+     元情報     メンバー名      メンバー情報  記入列
+     membersL, membersNameL, memLeft,   posiL
+     membersL, membersNameC, memCenter, posiC
+     membersL, membersNameR, memRight,  posiR
+  
+  / ================= */
+  
+
   
   
 // ===  配列 [ memberObj ] のメンバー情報から在席リストの書込情報を取得  ===  //
@@ -138,6 +145,7 @@ function WriteDataTest(...membersObj) {
     let detailNum;         // メンバー予定詳細の列番号
     let position;          // メンバー記入の位置  
     let normalHol;         // 通常休み判定
+    let schedPeriod
   
     // 関数実行
     GetRowColNum();      // 行 ・ 列番号 ・ 記入位置 を取得
@@ -158,6 +166,7 @@ function WriteDataTest(...membersObj) {
 
     // 現在の状態判定
     const goOutNow = setContents === '外出中';  // 外出中
+    const tripNow  = setContents === '出張中';  // 出張中
   
     // 状態判定(当日)
     const offDayJudge = twoMonthStatus[0] === '休み' || twoMonthStatus[0] === '公休';    // 休み
@@ -185,10 +194,12 @@ function WriteDataTest(...membersObj) {
   
 
     // 予定詳細欄に描く予定の期間を記入(例：12/1〜4 休み 等)
-    const schedPeriod = AddSchedPeriod();
+    details.forEach( detail => {
+      if ( detail === name ) schedPeriod = AddSchedPeriod();
+    });
 
       // ログ確認用(メンバーの情報)
-    console.log(name, rowNum, colNum, detailNum, position, monContents, nextMonContents, contents, nextContents, setContents, detail, swStart, swEnd, swDetail);
+//    console.log(name, rowNum, colNum, detailNum, position, monContents, nextMonContents, contents, nextContents, setContents, detail, swStart, swEnd, swDetail);
 //    console.log(twoMonthStatus);
 
   
@@ -196,8 +207,8 @@ function WriteDataTest(...membersObj) {
 //  ===  在席リストの状態・詳細項目を書込　関数を実行  === //
   
     // プロジェクト実行時間の設定
-    const startTimer = nowTime == 17 && !flex;
-    const endTimer = nowTime == 21 && !flex; 
+    const startTimer = nowTime == 6 && !flex;
+    const endTimer = nowTime == 22 && !flex; 
     const flexTimer = contents === flex;
   
     // 出社時に当日の在席状態を書込
@@ -221,7 +232,14 @@ function WriteDataTest(...membersObj) {
     });
 
 
-    SetArray();  // メンバー情報を配列に追加
+
+    // メンバー記入位置によって３つの配列に分類
+    if ( position === "L" ) memLeft.push([name, rowNum, setContents, detail]);
+    if ( position === "C" ) memCenter.push([name, rowNum, setContents, detail]);
+    if ( position === "R" ) memRight.push([name, rowNum, setContents, detail]);  
+
+
+//    console.log(members, memLeft, memCenter, memRight);
 
 
     /* ========================================================================= /
@@ -289,9 +307,9 @@ function WriteDataTest(...membersObj) {
       // 通常の土日休みパターンの場合、 「true」 を返す
       normalHol = normalHolMembers.includes(name);
        
-      // 曜日判定
-      const saturday = dateNum === 6;   // 土曜日 判定
-      const sunday   = dateNum === 0;   // 日曜日 判定
+//      // 曜日判定
+//      const saturday = dateNum === 6;   // 土曜日 判定
+//      const sunday   = dateNum === 0;   // 日曜日 判定
       
       // 当番判定
       const satDuty  = saturday && conts.indexOf('当番') !== -1; // 当番(当日)
@@ -332,7 +350,7 @@ function WriteDataTest(...membersObj) {
       if ( atHome ) SetStatus("contents", '在宅');                    // 「在宅」を書込
       
       // 詳細予定を書込
-      if ( goOut || trip || nightSft ) {                             // 外出 ・ 出張 ・ 宿直 の場合
+      if ( nightSft ) {                             // 外出 ・ 出張 ・ 宿直 の場合
         details.forEach( detail => {
           if ( detail === name ) SetStatus("detail", contents);
         });
@@ -348,7 +366,7 @@ function WriteDataTest(...membersObj) {
     function EndWrite(schedPeriod) {
 
       // 翌日が 出張以外 ・ 外出中 でなければ実行
-      if ( !nextTrip && !goOutNow ) {
+      if ( !tripNow && !goOutNow ) {
         SetStatus("contents", '帰宅');                        // 「帰宅」 を書込
         if ( nextOffDayJudge ) SetStatus("contents", '休み'); // 「休み」を書込
       };
@@ -356,64 +374,7 @@ function WriteDataTest(...membersObj) {
       
       details.forEach( detail => SetStatus("detail", schedPeriod));
     
-      // 予定詳細欄に書込
-      // 翌日が 休み(公休日以外) の場合
-//      if ( nextPaidHol ) details.forEach( detail => SetStatus("detail", schedPeriod));
-//      
-//      // 翌日が 出張 の場合
-//      if ( nextTrip ) details.forEach( detail => SetStatus("detail", schedPeriod));
-//      
-//      // 翌日が 外出 の場合
-//      if ( goOut ) details.forEach( detail => SetStatus("detail", schedPeriod));
-//      
-//      // 翌日が 在宅 の場合
-//      if ( atHome ) details.forEach( detail => SetStatus("detail", schedPeriod));
-//      
-//
-//      // 翌日が 休日 ・ 外出 ・ 出張 以外 かつ 当日の状態が「外出中」でない場合は予定を削除
-//      if ( nextAttend && setContents !== "外出中" ) details.forEach( detail => SetStatus("detail", ''));
 
-    }
-
-
-    /* ========================================================================= /
-    /  ===  会議開始時に実行   関数                                              === /
-    /  ======================================================================== */
-    function MtgStartWrite() {
-      const goto = attendList.getRange(19, 5, 1, 1).getValue();
-      const kamikura = attendList.getRange(28, 5, 1, 1).getValue();     
-      const run =  goto !== "休み" && kamikura !== "休み" && goto != "外出中" &&　kamikura != "外出中" && goto !== "出張中" && kamikura != "出張中";
-      
-      if ( run ) {
-        SetStatus("contents", '会議中');
-        if ( detail !== '' ) SetStatus("detail", '10 ~ 11時');
-      }
-    }
-
-
-    /* ========================================================================= /
-    /  ===  会議終了時に実行   関数                                              === /
-    /  ======================================================================== */
-    function MtgEndWrite() {
-      if ( setContents === '会議中' ) {
-        SetStatus("contents", '在席');
-        if ( detail !== '' ) SetStatus("detail", '');
-      }
-    }
-
-
-
-    /* ========================================================================= /
-    /  ===  メンバー情報を記入位置別で３つの配列に分ける。  関数                        === /
-    /  ======================================================================== */
-    
-    function SetArray() {
-    
-      // メンバー記入位置によって３つの配列に分類
-      if ( position === "L" ) memLeft.push([name, rowNum, setContents, detail]);
-      if ( position === "C" ) memCenter.push([name, rowNum, setContents, detail]);
-      if ( position === "R" ) memRight.push([name, rowNum, setContents, detail]);  
-      
     }
 
 
@@ -445,7 +406,7 @@ function WriteDataTest(...membersObj) {
       twoMonthPlus.shift();          // 配列[twoMonthStatus]から当日予定を削除
       twoMonthSched = monContents.concat(nextMonContents);
       twoMonthSched.shift();
-      console.log(twoMonthSched)
+//      console.log(twoMonthSched)
 
       twoMonthPlus.forEach( el => {
                 
@@ -581,7 +542,7 @@ function WriteDataTest(...membersObj) {
 
 
     /* ========================================================================= /
-    /  ===  翌日以降の予定を取得  関数                                           === /
+    /  ===  当日以降の予定を取得  関数                                           === /
     /  ======================================================================== */
   
     function GetSchedule() {

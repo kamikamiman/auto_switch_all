@@ -27,10 +27,6 @@
   const ends    = []; // 退社時
   const details = []; // 予定欄
 
-  // 期間限定(後で削除)
-  const mtgStarts  = [ "上倉健太", "後藤　勉" ];  // 会議開始切替
-  const mtgEnds    = [ "上倉健太", "後藤　勉" ];  // 会議終了切替
-
 
 /******************************************************/
 /***   指定したメンバーの予定を取得し、在席リストに書込む       ***/
@@ -59,25 +55,6 @@ function startTriggerTest() {
 
 }
 
-// プロジェクトトリガーで実行(iサーチ打ち合わせ開始)
-function mtgStartTriggerTest(){
-  
-  const time = new Date();
-  time.setHours(10);
-  time.setMinutes(01);
-  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
-
-}
-
-// プロジェクトトリガーで実行(iサーチ内合わせ終了)
-function mtgEndTriggerTest(){
-  
-  const time = new Date();
-  time.setHours(11);
-  time.setMinutes(01);
-  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
-
-}
 
 // プロジェクトトリガーで実行(退社時)
 function endTriggerTest(){
@@ -88,20 +65,6 @@ function endTriggerTest(){
   ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
  
 }
-
-
-// プロジェクトトリガーで実行(フレックス 7:30)
-function flexTriggerTest() {
-
- const time = new Date();
-  time.setHours(7);
-  time.setMinutes(30);
-  ScriptApp.newTrigger('AutoSwitchTest').timeBased().at(time).create();
-
-
-
-}
-
 
 
 
