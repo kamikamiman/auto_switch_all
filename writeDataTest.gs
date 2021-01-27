@@ -175,7 +175,7 @@ function WriteDataTest(...membersObj) {
   
     // 出社時・退社時のプロジェクト実行判定
     const startTimer = ( nowHours ==  8 && 20 <= nowMinutes && nowMinutes <= 30 ); // 出社時
-    const endTimer   = ( nowHours == 17 && 20 <= nowMinutes && nowMinutes <= 30 ); // 退社時
+    const endTimer   = ( nowHours == 17 && 13 <= nowMinutes && nowMinutes <= 35 ); // 退社時
 
     console.log(nowHours, nowMinutes, startTimer, endTimer);
 
