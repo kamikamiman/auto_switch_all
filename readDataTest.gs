@@ -49,6 +49,82 @@ function ReadDataTest() {
   const membersNames = [ membersNameL, membersNameC, membersNameR ]; // メンバー全員
 
 
+
+  // ----------------------------------------------------------------------------------------------------------- // 
+  //       在席リストの夜勤担当者の行・列番号を取得                                                                     //
+  // ----------------------------------------------------------------------------------------------------------- //   
+  
+  // 現在の時間（△時）を取得  
+  const nightDate = new Date();
+  const nowHours = Utilities.formatDate(nightDate, 'Asia/Tokyo', 'H');    // 現在の時間
+  const nowMinutes = Utilities.formatDate(nightDate, 'Asia/Tokyo', 'm');       // 現在の分
+
+  // 実行条件
+  const startTimer = ( nowHours == "8" && "20" <= nowMinutes && nowMinutes <= "35" ); // 出社時
+
+  // 変数の初期化
+  const dutyData1 = [];                             // 夜勤担当者の行・列番号(1人目)
+  const dutyData2 = [];                             // 夜勤担当者の行・列番号(2人目)
+  const nightDutysData = [ dutyData1, dutyData2 ];  // 夜勤担当者の行・列番号(2人分)
+
+  // 出社時に実行
+  if ( startTimer ) {
+    const nightDutyNames = GetNightDutys();  // 夜勤担当者2名を取得(フルネーム・配列)
+    i = 0;
+
+    // 夜勤担当者と在席リストメンバーリストを比較
+    membersNames.forEach( member => {
+
+      // 変数の定義
+      let rowNum,colNum;                // 夜勤当番者の行・列番号(在席リスト)
+      let setRowJudge, setColJudge;     // 行・列番号の存在判定
+
+      // メンバーの存在チェック(1人目)
+      CheckMembers();
+
+      // メンバーの存在判定がtrueで実行(2人目)
+      if ( setRowJudge && setColJudge ) CheckMembers();
+
+
+      // [関数] 夜勤担当者の名前が在席リストメンバーがあるかチェック
+      function CheckMembers() {
+
+        // 初期化
+        rowNum = 0;  // 行番号
+        colNum = 0;  // 列番号
+　
+        // 夜勤担当者と在席リストのメンバーが一致した時の行番号を取得
+        rowNum = member.indexOf(nightDutyNames[i]) + 1;
+
+        // 夜勤担当者と在席リストメンバーが一致した時の列番号を取得
+        if ( membersNameL.indexOf(nightDutyNames[i]) != -1 ) colNum = posiL - 2;
+        if ( membersNameC.indexOf(nightDutyNames[i]) != -1 ) colNum = posiC - 2;
+        if ( membersNameR.indexOf(nightDutyNames[i]) != -1 ) colNum = posiR - 2;
+
+        // 配列への書込み条件
+        setRowJudge = rowNum !== 0;
+        setColJudge = colNum !== undefined;
+
+        if ( setRowJudge && setColJudge ) {
+          nightDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
+          i++;                                                        // 次のメンバーをチェック
+        }
+
+        // ログ確認用
+        console.log("行・列:" + rowNum, colNum);
+        console.log("setRowJudge:" + setRowJudge);
+        console.log("setColJudge:" + setColJudge);
+        console.log("nightDutysData:" + nightDutysData);
+        console.log("nightDutysData[0]:" + nightDutysData[0]);
+        console.log("nightDutysData[1]:" + nightDutysData[1]);
+
+      };
+    });
+  }
+
+
+
+
   // ----------------------------------------------------------------------------------------------------------- // 
   //       当日から翌月までの日付・曜日・ISOWA休日判定を取得                                                             //
   // ----------------------------------------------------------------------------------------------------------- //
@@ -148,9 +224,7 @@ function ReadDataTest() {
       this.nextRow = nextRow;
       
     }
-
-    
-    
+  
     
     /* ========================================================================= /
     /  ===  今月 ・ 翌月 の予定 ・ セルの背景色 を取得 [ メソッド ]                  === /
@@ -204,7 +278,8 @@ function ReadDataTest() {
     };
     
   
-    
+
+
     /* ========================================================================= /
     /  ===  自動切替設定の情報 を取得 [ メソッド ]                                  === /
     /  ======================================================================== */  
@@ -226,7 +301,7 @@ function ReadDataTest() {
 
 
     /* ========================================================================= /
-    /  ===  在席リストのメンバーの 行 ・ 列番号 ・ 記入位置 を取得　[ メソッド ]            === /
+    /  ===  在席リストのメンバーの 行 ・ 列番号 ・ 記入位置 を取得　[ メソッド ]       === /
     /  ======================================================================== */      
 
     GetRowColNum() {
@@ -271,8 +346,6 @@ function ReadDataTest() {
       this.colNum    = colNum;     // 在席状態 記入列
       this.position  = position;   // 記入位置 ( 左 ・ 中央 ・ 右 )
       this.detailNum = detailNum;  // 予定詳細 記入列
-
-
     
     }
     
@@ -1049,7 +1122,7 @@ function ReadDataTest() {
     const nextRow  = nextMembers.indexOf(target) + 1;     // 行番号 （翌日）
 
     // オブジェクト作成(予定表に名前があるメンバーのみ実行)
-    if ( row > 0 ) {
+    if ( row > 0 && nextRow > 0) {
       const obj = new MemberObj(target, row, nextRow);       // オブジェクト{obj}作成
       obj.GetContents();                                     // {obj} に本日の予定を追加
       obj.GetSwitchSet();                                    // {obj} に切替設定を追加
@@ -1065,9 +1138,12 @@ function ReadDataTest() {
   });
   
   // ログ確認用(メンバー毎のオブジェクト)
-  console.log(membersObj);
+  // console.log(membersObj);
+  console.log("nightDutysData:" + nightDutysData);
+
+  const object = [ membersObj, nightDutysData ];
 
   // 配列を返す >>> whiteData関数に情報を渡す
-  return membersObj; 
+  return object; 
   
 };

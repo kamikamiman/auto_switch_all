@@ -1,12 +1,10 @@
 /*
   [ プログラム説明 ]
-
 ① プロジェクトトリガーで startTrigger() を実行する。 → 8:25 に AutoSwitch() が実行される。
    当日の在席状態を自動で変更する。
   
 ② プロジェクトトリガーで endTrigger() を実行する。  → 17:30 に AutoSwitch() が実行される。
    当日・翌日の在席状態を自動で変更する。
-
 ・ 当日・翌日の情報を取得し、それ以降の予定は取得しない。
 ・ 予定表の記入方法
   外出 : 外出の文字が含まれるように記載する。
@@ -19,17 +17,13 @@
   　
   
   
-
 */
-
-
   // 対象者を格納する配列( 自動切替のシートから取得 関数readDataより ) * 新たに切替を追加する場合はここに追加！！
   const targets = [];    // 切替対象者
   const starts  = [];    // 出社時
   const ends    = [];    // 退社時
   const details = [];    // 予定欄
   const attendSels = []; // 在席時の表示選択(東館選択時に格納, 通常は在席表示)
-
 
 //  =============  以下に記入された以外の文字の場合は、設定が反映されませんので注意!  =============  //
 
@@ -45,34 +39,33 @@
   // フレックスパターンを設定
   const flexPatterns = [ 'フレックス', 'ﾌﾚｯｸｽ', 'フレ', 'ﾌﾚ' ];
 
-
-
   // 在席リストの状態・予定詳細内容の書込先 (在席リストの列のセルが追加・削除された場合、ここの列番号も変更も必要です!) 
   let posiL =  5; // memLeftの書込先の列番号
   let posiC = 10; // memCenterの書込先の列番号
   let posiR = 15; // memRightの書込み先の列番号
 
-
 /******************************************************/
-/***   指定したメンバーの予定を取得し、在席リストに書込む       ***/
+/***   指定したメンバーの予定を取得し、在席リストに書込む   ***/
 /******************************************************/
 function AutoSwitchTest() {
   
-  const membersObj = ReadDataTest(); // 在席状態・予定詳細を取得
-  
-  WriteDataTest(...membersObj);      // 取得した情報から在席状態・予定を書込
+  const object = ReadDataTest(); // 在席状態・予定詳細を取得
 
+  const membersObj = object[0];
+  const getRowCol  = object[1];
+
+  // console.log("membersObj:" + membersObj);
+  // console.log("getRowCol:" + getRowCol);
+  
+  WriteDataTest(getRowCol, ...membersObj);      // 取得した情報から在席状態・予定を書込
 }
 
-
-
 /**************************************************/
-/***   指定した時間にスクリプトを実行するトリガー設定       ***/
+/***   指定した時間にスクリプトを実行するトリガー設定   ***/
 /**************************************************/
-
 // プロジェクトトリガーで実行
 function StartTrigger() {
-  
+
   // 自動切替の設定時間を設定
   let setTimes = [ "0:00",  "0:30",  "1:00",  "1:30",  "2:00",  "2:30",  "3:00",  "3:30",  "4:00",
                    "4:30",  "5:00",  "5:30",  "6:00",  "6:30",  "7:00",  "7:30",  "8:00",  "8:25",
@@ -97,11 +90,9 @@ function StartTrigger() {
   
   // 現在の時間とフレックス時間を比較
   setDelTimes.forEach( el => {
-
     el.forEach( el2 => {
                       
       console.log(`el2: ${el2}`);
-
       // 設定時間を取得
       let setTime;
       const colonJudge    = el2.indexOf(":") !== -1;
@@ -110,7 +101,6 @@ function StartTrigger() {
       if ( asteriskJudge ) setTime = el2.split("*");   // 時間を分割 [*]の場合
       setTime[0] = Number(setTime[0]);  // 時間
       setTime[1] = Number(setTime[1]);  // 分
-
   
       // 現在の時間を取得
       const time = new Date();                                       // 現在時間を取得
@@ -118,7 +108,6 @@ function StartTrigger() {
       const Hm = HHmm.split(":");                                    // 時間を分割
       const HH = Number(Hm[0]);                                      // 時間
       const mm = Number(Hm[1]);                                      // 分
-
       let delJudge;
       let setJudge;
   
@@ -157,12 +146,11 @@ function StartTrigger() {
             console.log("AutoSwitchTest実行(1)");
           }        
         }
-      
+
       // 現在時刻より設定時刻が大きい場合に実行
       } else if ( ( setTime[0] == HH + 1 && setTime[1] < 30 ) || ( HH == 23 && setTime[0] == 23 && 30 <= setTime[1] ) ) {
         console.log("CCC");
         console.log(`実行時間2 ${setTime[0]}:${setTime[1]}`);
-
         // 関数の実行時間を設定
         time.setHours(setTime[0]);
         time.setMinutes(setTime[1]);
@@ -188,16 +176,9 @@ function StartTrigger() {
     });
   
   });
-
-
 }
-
-
-
-
 // プロジェクトトリガーで実行(不要なプロジェクトトリガーの削除用)
 function DeleteTrigger() {
-
   const triggers = ScriptApp.getProjectTriggers();  // 現在設定されているトリガーを取得
 //  const staySecond = 120;                           // 遅延時間を設定(秒)
 //  Utilities.sleep(staySecond * 1000);               // 設定時間だけ処理を遅らせる。 
@@ -211,92 +192,109 @@ function DeleteTrigger() {
   
 }
 
-
-
-
-
-
-
-
-  // -------------------------------- // 
-  //    サービス作業予定表のシート情報     //
-  // -------------------------------- //
-
-  // スプレットシートを取得
-  const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0oR4'); // サービス作業予定表 (テスト用ID)
+// -------------------------------- // 
+//    サービス作業予定表のシート情報     //
+// -------------------------------- //
+// スプレットシートを取得
+const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0oR4'); // サービス作業予定表 (テスト用ID)
     
-  // 本日の月のシート情報を取得
-  const date   = new Date();                                             // 日付を取得
-  const nowDay = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');        // 本日の日付のフォーマット
-  const period = 69;                                                     // 第〇〇期
-  const nowMonth = Utilities.formatDate(date, 'Asia/Tokyo', 'M');        // 本日の月を取得
-  const schedule = ssGet.getSheetByName('${period}期${nowMonth}月'
+// 本日の月のシート情報を取得
+const date   = new Date();                                             // 日付を取得
+const nowDay = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');        // 本日の日付のフォーマット
+  let period = 69;                                                     // 第〇〇期
+const nowMonth = Utilities.formatDate(date, 'Asia/Tokyo', 'M');        // 本日の月を取得
+const schedule = ssGet.getSheetByName('${period}期${nowMonth}月'
                                       .replace('${period}', period)
                                       .replace('${nowMonth}', nowMonth));
   
-  // 翌月の月のシート情報を取得
-  const nextDate = new Date(date.setMonth(date.getMonth()+1));
-  const nextMonth = Utilities.formatDate(nextDate, 'Asia/Tokyo', 'M');
-  let nextSchedule;                // 翌月
-  const nextPeriod = period + 1;   // 来期
+// 翌月の月のシート情報を取得
+const nextDate = new Date(date.setMonth(date.getMonth()+1));
+const nextMonth = Utilities.formatDate(nextDate, 'Asia/Tokyo', 'M');
+let nextSchedule;                // 翌月
+const nextPeriod = period + 1;   // 来期
 
-  // 翌月が４月以外に実行
-  if ( nextMonth != 4 ) {
-    nextSchedule  = ssGet.getSheetByName('${period}期${nextMonth}月'
-                                      .replace('${period}', period)
-                                      .replace('${nextMonth}', nextMonth));
-  // 翌月が４月なら実行
-  } else {
-    nextSchedule  = ssGet.getSheetByName('${period}期${nextMonth}月'
-                                      .replace('${period}', nextPeriod)
-                                      .replace('${nextMonth}', nextMonth));
-  }
+// 翌月が４月以外に実行
+if ( nextMonth != 4 ) {
+  nextSchedule  = ssGet.getSheetByName('${period}期${nextMonth}月'
+                                    .replace('${period}', period)
+                                    .replace('${nextMonth}', nextMonth));
+// 翌月が４月なら実行
+} else {
+  nextSchedule  = ssGet.getSheetByName('${period}期${nextMonth}月'
+                                    .replace('${period}', nextPeriod)
+                                    .replace('${nextMonth}', nextMonth));
+}
     
-  // 日付を取得するセル範囲を指定
-  const firstRow = 6;                                                    // セル選択開始行
-  const lastCol  = schedule.getLastColumn();                             // セル選択終了列
-  const _days = schedule.getRange(firstRow, 2, 1, lastCol -1);           // 日付情報の取得範囲
-  const days = _days.getValues().flat();                                 // 日付情報を取得(配列)
+
+// サービス作業予定表の情報を取得 ( 昼休み当番・土曜当番・２４Hサービス・日付 )
+const firstRow = 2;                                                    // セル選択開始行
+const lastCol  = schedule.getLastColumn();                             // セル選択終了列
+const _scheduleData = schedule.getRange(firstRow, 2, 5, lastCol -1);   // 情報の取得範囲
+const scheduleData = _scheduleData.getValues();                        // 情報を取得(配列)
+const getCellBackgrounds = _scheduleData.getBackgrounds();             // セルの背景色を取得(配列)
+
+// 各情報を分割して取得
+const lunchDuty    = scheduleData[0];      // 昼当番
+const saturdayDuty = scheduleData[1];      // 土曜当番
+const nightDuty    = scheduleData[2];      // ２４Ｈ当番
+const nightArea    = scheduleData[3];      // ２４Ｈ管轄
+const days         = scheduleData[4];      // 日付
+
+// 各セルの背景色を分割して取得
+const lunchBG     = getCellBackgrounds[0]; // 昼当番
+const saturdayBG  = getCellBackgrounds[1]; // 土曜当番
+const nightBG     = getCellBackgrounds[2]; // ２４Ｈ当番
+const nightAreaBG = getCellBackgrounds[3]; // ２４Ｈ管轄
+const daysBG      = getCellBackgrounds[4]; // 日付
+
+
+// ログ確認用
+// console.log("scheduleData:" + scheduleData);
+// console.log("lunchDuty:" + lunchDuty);
+// console.log("saturdayDuty:" + saturdayDuty);
+// console.log("nightDuty:" + nightDuty);
+// console.log("nightArea:" + nightArea);
+
   
-  // 本日の日付のセルの列番号を取得
-  let nowDayNum = 2;                                                     // 列番号(初期値)
-  let dayNum;                                                            // 本日の日付の列番号
-  days.forEach( getDay => {
-     const day = Utilities.formatDate(getDay, 'Asia/Tokyo', 'M/d');
-     if( day === nowDay ) dayNum = nowDayNum -1;
-     nowDayNum += 1;
-  });
+// 本日の日付のセルの列番号を取得
+let nowDayNum = 2;                                                     // 列番号(初期値)
+let dayNum, dayOfWeek;                                                 // 本日の日付の列番号
+days.forEach( getDay => {
+   const day = Utilities.formatDate(getDay, 'Asia/Tokyo', 'M/d');
+   if( day === nowDay ) {
+     dayNum = nowDayNum - 1;                                           // 日付の番号
+     arrDayNum = dayNum - 1;                                           // 日付の番号(配列用)
+     dayOfWeek = new Date(getDay).getDay();                            // 曜日番号
+   }
 
+   nowDayNum += 1;
+});
 
-  // 予定表のメンバーを取得(今月)
-  const monLastRow = schedule.getRange('A:A').getLastRow();                   // 最終行番号
-  const monLastCol = schedule.getLastColumn() -1;                             // 最終列番号
-  const members = schedule.getRange(1, 1, monLastRow, 1).getValues().flat();  // メンバー情報
-  const memSched = schedule.getRange(1, 1, monLastRow, monLastCol +1).getValues();      // メンバー情報(予定も含む)
-  const memColor = schedule.getRange(1, 1, monLastRow, monLastCol +1).getBackgrounds(); // セルの背景色
+// 予定表のメンバーを取得(今月)
+const monLastRow = schedule.getRange('A:A').getLastRow();                                               // 最終行番号
+const monLastCol = schedule.getLastColumn() -1;                                                         // 最終列番号
+const members = schedule.getRange(1, 1, monLastRow, 1).getValues().flat();                              // メンバー情報
+const memSched = schedule.getRange(1, 1, monLastRow, monLastCol +1).getValues();                        // メンバー情報(予定も含む)
+const memColor = schedule.getRange(1, 1, monLastRow, monLastCol +1).getBackgrounds();                   // セルの背景色
 
-  // 予定表のメンバーを取得(来月)
-  const nextMonLastRow = nextSchedule.getRange('A:A').getLastRow();                      // 最終行番号
-  const nextMonLastCol = nextSchedule.getLastColumn() -1;                                // 最終列番号
-  const nextMembers = nextSchedule.getRange(1, 1, nextMonLastRow, 1).getValues().flat(); // メンバー情報
-  const nextMemSched = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCol +1).getValues();  // メンバー情報(予定も含む)
-  const nextMemColor = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCol +1).getBackgrounds(); // セルの背景色
+// 予定表のメンバーを取得(来月)
+const nextMonLastRow = nextSchedule.getRange('A:A').getLastRow();                                       // 最終行番号
+const nextMonLastCol = nextSchedule.getLastColumn() -1;                                                 // 最終列番号
+const nextMembers    = nextSchedule.getRange(1, 1, nextMonLastRow, 1).getValues().flat();               // メンバー情報
+const nextMemSched   = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCol +1).getValues();      // メンバー情報(予定も含む)
+const nextMemColor   = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCol +1).getBackgrounds(); // セルの背景色
 
+// -------------------------------- // 
+//       在席リストのシート情報         //
+// -------------------------------- //
 
+const ssSet = SpreadsheetApp.openById('1Itid9HCrW0wy_ATM4lqBDzkQs64DpemrWL4THmOsEIg');                      // ここに在席リストのIDを記入(テスト用ID)
+const attendList = ssSet.getSheetByName('当日在席(69期)');                                                    // 在席リスト
+const offDayList = ssSet.getSheetByName('69期サービス土日休み');                                               // サービス土日休み
+const offLastRow = offDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();       // サービス土日休みの最終行番号
+const isoOffDayList = ssSet.getSheetByName('isowa休日');                                                     // isowa休日
+const isoOffLastRow = isoOffDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow(); // isowa休日の最終行番号
+const isowaOffDays = isoOffDayList.getRange(1,  1, isoOffLastRow, 1).getValues().flat();                    // ISOWAの休日情報(GW等)を取得
 
-  // -------------------------------- // 
-  //       在席リストのシート情報           //
-  // -------------------------------- //
-  const ssSet = SpreadsheetApp.openById('1Itid9HCrW0wy_ATM4lqBDzkQs64DpemrWL4THmOsEIg');                      // ここに在席リストのIDを記入(テスト用ID)
-  const attendList = ssSet.getSheetByName('当日在席(69期)');                                                    // 在席リスト
-  const offDayList = ssSet.getSheetByName('69期サービス土日休み');                                                // サービス土日休み
-  const offLastRow = offDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();       // サービス土日休みの最終行番号
-  const isoOffDayList = ssSet.getSheetByName('isowa休日');                                                     // isowa休日
-  const isoOffLastRow = isoOffDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow(); // isowa休日の最終行番号
-  const isowaOffDays = isoOffDayList.getRange(1,  1, isoOffLastRow, 1).getValues().flat();                    // ISOWAの休日情報(GW等)を取得
-
-  // メンバーの休日パターンを取得(シート２)  ( シート左列のメンバー + シート2記入メンバー ) >>> 土日休み
-  const normalHolMems = offDayList.getRange(1, 1, offLastRow, 1).getValues().flat();    // 土日休みのメンバーを取得(サービス)
-
-
-
+// メンバーの休日パターンを取得(シート２)  ( シート左列のメンバー + シート2記入メンバー ) >>> 土日休み
+const normalHolMems = offDayList.getRange(1, 1, offLastRow, 1).getValues().flat();                          // 土日休みのメンバーを取得(サービス)
