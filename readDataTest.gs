@@ -5,7 +5,6 @@
 
 function ReadDataTest() {
 
-
   // ---------------------------------------------------------------------------------------------------------- // 
   //       在席リストのシート(切替設定)情報                                                                            //
   // ---------------------------------------------------------------------------------------------------------- // 
@@ -54,73 +53,128 @@ function ReadDataTest() {
   //       在席リストの夜勤担当者の行・列番号を取得                                                                     //
   // ----------------------------------------------------------------------------------------------------------- //   
   
-  // 現在の時間（△時）を取得  
-  const nightDate = new Date();
-  const nowHours = Utilities.formatDate(nightDate, 'Asia/Tokyo', 'H');    // 現在の時間
-  const nowMinutes = Utilities.formatDate(nightDate, 'Asia/Tokyo', 'm');       // 現在の分
-
-  // 実行条件
-  const startTimer = ( nowHours == "8" && "20" <= nowMinutes && nowMinutes <= "35" ); // 出社時
-
   // 変数の初期化
   const dutyData1 = [];                             // 夜勤担当者の行・列番号(1人目)
   const dutyData2 = [];                             // 夜勤担当者の行・列番号(2人目)
   const nightDutysData = [ dutyData1, dutyData2 ];  // 夜勤担当者の行・列番号(2人分)
 
-  // 出社時に実行
-  if ( startTimer ) {
-    const nightDutyNames = GetNightDutys();  // 夜勤担当者2名を取得(フルネーム・配列)
-    i = 0;
+  const nightDutyNames = GetNightDutys();  // 夜勤担当者2名を取得(フルネーム・配列)
+  i = 0;
 
-    // 夜勤担当者と在席リストメンバーリストを比較
-    membersNames.forEach( member => {
+  // 夜勤担当者と在席リストメンバーリストを比較
+  membersNames.forEach( member => {
 
-      // 変数の定義
-      let rowNum,colNum;                // 夜勤当番者の行・列番号(在席リスト)
-      let setRowJudge, setColJudge;     // 行・列番号の存在判定
+    // 変数の定義
+    let rowNum,colNum;                // 夜勤当番者の行・列番号(在席リスト)
+    let setRowJudge, setColJudge;     // 行・列番号の存在判定
 
-      // メンバーの存在チェック(1人目)
-      CheckMembers();
+    // メンバーの存在チェック(1人目)
+    CheckMembers();
 
-      // メンバーの存在判定がtrueで実行(2人目)
-      if ( setRowJudge && setColJudge ) CheckMembers();
+    // メンバーの存在判定がtrueで実行(2人目)
+    if ( setRowJudge && setColJudge ) CheckMembers();
 
 
-      // [関数] 夜勤担当者の名前が在席リストメンバーがあるかチェック
-      function CheckMembers() {
+    // [関数] 夜勤担当者の名前が在席リストメンバーがあるかチェック
+    function CheckMembers() {
 
-        // 初期化
-        rowNum = 0;  // 行番号
-        colNum = 0;  // 列番号
+      // 初期化
+      rowNum = 0;  // 行番号
+      colNum = 0;  // 列番号
 　
-        // 夜勤担当者と在席リストのメンバーが一致した時の行番号を取得
-        rowNum = member.indexOf(nightDutyNames[i]) + 1;
+      // 夜勤担当者と在席リストのメンバーが一致した時の行番号を取得
+      rowNum = member.indexOf(nightDutyNames[i]) + 1;
 
-        // 夜勤担当者と在席リストメンバーが一致した時の列番号を取得
-        if ( membersNameL.indexOf(nightDutyNames[i]) != -1 ) colNum = posiL - 2;
-        if ( membersNameC.indexOf(nightDutyNames[i]) != -1 ) colNum = posiC - 2;
-        if ( membersNameR.indexOf(nightDutyNames[i]) != -1 ) colNum = posiR - 2;
+      // 夜勤担当者と在席リストメンバーが一致した時の列番号を取得
+      if ( membersNameL.indexOf(nightDutyNames[i]) != -1 ) colNum = posiL - 2;
+      if ( membersNameC.indexOf(nightDutyNames[i]) != -1 ) colNum = posiC - 2;
+      if ( membersNameR.indexOf(nightDutyNames[i]) != -1 ) colNum = posiR - 2;
 
-        // 配列への書込み条件
-        setRowJudge = rowNum !== 0;
-        setColJudge = colNum !== undefined;
+      // 配列への書込み条件
+      setRowJudge = rowNum !== 0;
+      setColJudge = colNum !== undefined;
 
-        if ( setRowJudge && setColJudge ) {
-          nightDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
-          i++;                                                        // 次のメンバーをチェック
-        }
+      if ( setRowJudge && setColJudge ) {
+        nightDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
+        i++;                                                        // 次のメンバーをチェック
+      }
 
-        // ログ確認用
-        console.log("行・列:" + rowNum, colNum);
-        console.log("setRowJudge:" + setRowJudge);
-        console.log("setColJudge:" + setColJudge);
-        console.log("nightDutysData:" + nightDutysData);
-        console.log("nightDutysData[0]:" + nightDutysData[0]);
-        console.log("nightDutysData[1]:" + nightDutysData[1]);
+      // ログ確認用
+      console.log("行・列:" + rowNum, colNum);
+      console.log("setRowJudge:" + setRowJudge);
+      console.log("setColJudge:" + setColJudge);
+      console.log("nightDutysData:" + nightDutysData);
+      console.log("nightDutysData[0]:" + nightDutysData[0]);
+      console.log("nightDutysData[1]:" + nightDutysData[1]);
 
-      };
-    });
-  }
+    };
+  });
+
+
+
+
+  // ----------------------------------------------------------------------------------------------------------- // 
+  //       土曜当番の担当者を取得                                                                                    //
+  // ----------------------------------------------------------------------------------------------------------- //
+
+  // 変数の初期化
+  const satData1 = [];                             // 土曜当番者の行・列番号(1人目)
+  const satData2 = [];                             // 土曜当番者の行・列番号(2人目)
+  const satDutysData = [ satData1, satData2 ];     // 土曜当番者の行・列番号(2人分)
+
+  const satDutyNames = GetSatDutys();  // 土曜当番者2名を取得(フルネーム・配列)
+
+  i = 0;
+
+// 土曜当番者と在席リストメンバーリストを比較
+  membersNames.forEach( member => {
+
+    // 変数の定義
+    let rowNum,colNum;                // 土曜当番者の行・列番号(在席リスト)
+    let setRowJudge, setColJudge;     // 行・列番号の存在判定
+
+    // メンバーの存在チェック(1人目)
+    CheckMembers();
+
+    // メンバーの存在判定がtrueで実行(2人目)
+    if ( setRowJudge && setColJudge ) CheckMembers();
+
+
+    // [関数] 土曜当番者の名前が在席リストメンバーがあるかチェック
+    function CheckMembers() {
+
+      // 初期化
+      rowNum = 0;  // 行番号
+      colNum = 0;  // 列番号
+　
+      // 土曜当番者と在席リストのメンバーが一致した時の行番号を取得
+      rowNum = member.indexOf(satDutyNames[i]) + 1;
+
+      // 土曜当番者と在席リストメンバーが一致した時の列番号を取得
+      if ( membersNameL.indexOf(satDutyNames[i]) != -1 ) colNum = posiL - 2;
+      if ( membersNameC.indexOf(satDutyNames[i]) != -1 ) colNum = posiC - 2;
+      if ( membersNameR.indexOf(satDutyNames[i]) != -1 ) colNum = posiR - 2;
+
+      // 配列への書込み条件
+      setRowJudge = rowNum !== 0;
+      setColJudge = colNum !== undefined;
+
+      if ( setRowJudge && setColJudge ) {
+        satDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
+        i++;                                                        // 次のメンバーをチェック
+      }
+
+      // ログ確認用
+      console.log("行・列:" + rowNum, colNum);
+      console.log("setRowJudge:" + setRowJudge);
+      console.log("setColJudge:" + setColJudge);
+      console.log("satDutysData:" + satDutysData);
+      console.log("satDutysData[0]:" + satDutysData[0]);
+      console.log("satDutysData[1]:" + satDutysData[1]);
+
+    };
+  });
+
 
 
 
@@ -202,11 +256,6 @@ function ReadDataTest() {
 
   // 今月と翌月の配列を結合(2ヶ月分)
   const twoMonArr = thisMonArr.concat(nextMonArr);
-
-  // ログ確認用
-  // console.log("thisMonArr:" + thisMonArr);
-  // console.log("nextMonArr:" + nextMonArr);
-  // console.log("twoMonArr:" + twoMonArr);
 
 
 
@@ -683,14 +732,28 @@ function ReadDataTest() {
     /  ======================================================================== */
     
     FlexTimeAndConts(conts) {
+
+      console.log("cont:" + conts);
       
       // 変数の初期化
       let flexTime = '';
       let flexConts = '';
       let i = 0;
 
-      // 予定の内容を[フレ]で前後分割して取得      
-      const _flexTime  = conts.split('フレ');
+      // 予定の内容を[フレ]で前後分割して取得(フレックスは[ﾌﾚ][フレ]に対応)
+      let _flexTime;
+      const halfJudge = conts.indexOf('ﾌﾚ') !== -1;
+      const fullJudge = conts.indexOf('フレ') !== -1;
+      if ( halfJudge ) {
+         console.log("半角");
+        _flexTime = conts.split('ﾌﾚ');
+      } else if ( fullJudge ) {
+         console.log("全角");
+        _flexTime  = conts.split('フレ');
+      } else {
+         console.log("不明");
+      }
+
       const above = _flexTime[0];             // 前半の文字列
       const below = _flexTime[1];             // 後半の文字列
       const flexAboBel = [ above, below ];    // 前半・後半の文字列を格納[配列]
@@ -718,9 +781,13 @@ function ReadDataTest() {
           reveresdString = reversedArray.join('');
         }
       
+        console.log(this.name);
+        console.log("belowNow:" + belowNow);
+        console.log("el:" + el);
+
         // 文字列の一番目に空白があるか判定
         if ( aboveNow ) blankNum = reveresdString.search(/\s/); // 前半の文字列
-        if ( belowNow ) blankNum = el.search(/\s/);          // 後半の文字列
+        if ( belowNow ) blankNum = el.search(/\s/);             // 後半の文字列
       
       
         // 文字列から時間と予定をそれぞれ取得
@@ -779,8 +846,6 @@ function ReadDataTest() {
       });
 
       let flexTimeConts = [ flexTime, flexConts ]; // フレックス時間, 予定 を配列に格納
-
-    //  console.log("フレックス時間:" + flexTime);
       
       return flexTimeConts;  // 配列を返す
       
@@ -829,8 +894,6 @@ function ReadDataTest() {
         const noExec = [];
         
         strEndFlexTime.forEach( el => {
-
-//          console.log(el); 
 
           // 分割 ( 時間 ・ 分 )
           // @ts-ignore
@@ -1140,8 +1203,9 @@ function ReadDataTest() {
   // ログ確認用(メンバー毎のオブジェクト)
   // console.log(membersObj);
   console.log("nightDutysData:" + nightDutysData);
+  console.log("satDutysData:" + satDutysData);
 
-  const object = [ membersObj, nightDutysData ];
+  const object = [ membersObj, nightDutysData, satDutysData ];
 
   // 配列を返す >>> whiteData関数に情報を渡す
   return object; 

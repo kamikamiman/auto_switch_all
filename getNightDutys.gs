@@ -1,18 +1,7 @@
-// ・メール送信の関数がない。
-// ・修正時、スプレットシートURLを変更する。
-// ・24時間のメンバー名を在席リストの名前とリンクさせる。
-//   当日の在席リストのメンバー情報を取得。                                  >>> 完了
-//   ①24時間担当者の在席リストの名前のセルを色で塗りつぶす。                   >>> 完了
-//   ②情報に24, 24hがあれば、在席リストのそのメンバーのセルを色で塗りつぶす。    >>> 完了
-//   実行する時間帯は、当日の朝8:25                                        >>> 完了
-//   このスクリプトを在席リストに移す。                                     >>> 完了
-//   プログラムの実行条件・整理                                            >>> 完了
-
-
 function GetNightDutys() {
 
-  // メールアドレス一覧から送信対象者の情報を取得
-  const sheetAdress = ssGet.getSheetByName('メールアドレス（24h）'); // スプレットシート情報を取得
+  // メンバー（土曜・24h）から対象者の情報を取得
+  const sheetAdress = ssGet.getSheetByName('メンバー（土曜・24h）'); // スプレットシート情報を取得
   const lastRow = sheetAdress.getLastRow() - 1;
   const names = sheetAdress.getRange(2, 2, lastRow, 3).getValues();
 

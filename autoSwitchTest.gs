@@ -1,23 +1,3 @@
-/*
-  [ プログラム説明 ]
-① プロジェクトトリガーで startTrigger() を実行する。 → 8:25 に AutoSwitch() が実行される。
-   当日の在席状態を自動で変更する。
-  
-② プロジェクトトリガーで endTrigger() を実行する。  → 17:30 に AutoSwitch() が実行される。
-   当日・翌日の在席状態を自動で変更する。
-・ 当日・翌日の情報を取得し、それ以降の予定は取得しない。
-・ 予定表の記入方法
-  外出 : 外出の文字が含まれるように記載する。
-  出張 : 出張の文字が含まれるように記載する。
-  休み : 休み・有給・振休・代休・RHのいずれかの文字が含まれるように記載する。
-  
-  
-  [ テスト版から本番への変更時 ]
-  ① [ssGet],[ssSet]のIDを変更する。
-  　
-  
-  
-*/
   // 対象者を格納する配列( 自動切替のシートから取得 関数readDataより ) * 新たに切替を追加する場合はここに追加！！
   const targets = [];    // 切替対象者
   const starts  = [];    // 出社時
@@ -32,12 +12,9 @@
 
   // 完全フレックス判定 ( 通常フレックスとの判別 [フレ]を含む場合、予定詳細にフレックス時間まで書き込まれてしまう対策 )
   const fullFlex = [ 'フレ休み', 'フレ休', '完フレ', '完ﾌﾚ', '完全フレ', '完全ﾌﾚ', '完全フレックス', '完全ﾌﾚｯｸｽ' ];
-
-  // 宿直パターンを設定(24時間サービス)
-  const nightShtPatterns = [ '24', '24h', '24H', '２４', '２４ｈ', '２４Ｈ' ];
   
   // フレックスパターンを設定
-  const flexPatterns = [ 'フレックス', 'ﾌﾚｯｸｽ', 'フレ', 'ﾌﾚ' ];
+  const flexPatterns = [ 'フレ', 'ﾌﾚ' ];
 
   // 在席リストの状態・予定詳細内容の書込先 (在席リストの列のセルが追加・削除された場合、ここの列番号も変更も必要です!) 
   let posiL =  5; // memLeftの書込先の列番号
@@ -49,15 +26,16 @@
 /******************************************************/
 function AutoSwitchTest() {
   
-  const object = ReadDataTest(); // 在席状態・予定詳細を取得
+  // 在席状態・予定詳細を取得
+  const object = ReadDataTest();
 
-  const membersObj = object[0];
-  const getRowCol  = object[1];
-
-  // console.log("membersObj:" + membersObj);
-  // console.log("getRowCol:" + getRowCol);
+  // 取得した情報を分割
+  const membersObj  = object[0];
+  const nightRowCol   = object[1];
+  const satRowCol = object[2];
   
-  WriteDataTest(getRowCol, ...membersObj);      // 取得した情報から在席状態・予定を書込
+  // 取得した情報から在席状態・予定を書込
+  WriteDataTest(nightRowCol, satRowCol, ...membersObj);
 }
 
 /**************************************************/
