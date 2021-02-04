@@ -4,8 +4,7 @@
   ・ 24時間サービス転送設定確認のスクリプトをこの中に移植する。  >>> 完了
   ・ 24時間サービス転送確認のスクリプトをこの中に移植する。     >>> 完了
   ・ 24時間の場合、名前のセルを塗りつぶす。  >> 8:30に切替     >>> 完了
-  ・ 土曜当番の場合、名前のセルを塗りつぶす。 >> 8:00に切替
-
+  ・ 土曜当番の場合、名前のセルを塗りつぶす。 >> 8:30に切替     >>> 完了
 
 □ 本番前の注意点
   ・ 予定表と在席リストの漢字が違いエラーとなる事例あり。(福崎さん等)
@@ -17,7 +16,7 @@
 □ 確認事項
 
 □ バグ修正
-   ・ 
+   ・ フレックス時間が〇〇:30の時に、〇〇:00でも状態が切り替わる可能性がある。 >>> 完了
 
 */
 
@@ -40,8 +39,8 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   const nextDate = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');       // 明日の日付を取得
 
   // 出社時・退社時のプロジェクト実行判定
-  const startTimer = ( nowHours == 22 && 00 <= nowMinutes && nowMinutes <= 45 ); // 出社時
-  const endTimer   = ( nowHours == 17 && 12 <= nowMinutes && nowMinutes <= 45 ); // 退社時
+  const startTimer = ( nowHours ==  8 && 20 <= nowMinutes && nowMinutes <= 40 ); // 出社時
+  const endTimer   = ( nowHours == 17 && 12 <= nowMinutes && nowMinutes <= 25 ); // 退社時
 
   // 曜日判定
   const saturday = (dayOfNum === 6);   // 土曜日 判定
@@ -148,8 +147,15 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
       strFlexTimer = ( nowHours == nStrHours + 1 ) && ( nowHours == pStrHours ) && ( nowMinutes <= pStrMinutes );
     // 実行時間が **:00 以外の場合
     } else { 
-      strFlexTimer = ( nowHours == nStrHours ) && ( nowHours == pStrHours ) && ( nowMinutes <= pStrMinutes );
+      strFlexTimer = ( nowHours == nStrHours ) && ( nowHours == pStrHours )
+       && ( nowMinutes >= nStrMinutes )&& ( nowMinutes <= pStrMinutes );
     };
+
+    console.log("strFlexTimer:" + strFlexTimer);
+    console.log("pStrMinutes:" + pStrMinutes);
+    console.log("pStrHours:" + pStrHours);
+    console.log("nStrMinutes:" + nStrMinutes);
+    console.log("nStrHours:" + nStrHours);
           
     // フレックス終了時のプロジェクト実行判定
     let endFlexTimer = false;
@@ -159,7 +165,8 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
       endFlexTimer = ( nowHours == nEndHours + 1 ) && ( nowHours == pEndHours ) && ( nowMinutes <= pEndMinutes );
     // 実行時間が **:00 以外の場合
     } else {
-      endFlexTimer = ( nowHours == nEndHours ) && ( nowHours == pEndHours ) && ( nowMinutes <= pEndMinutes );
+      endFlexTimer = ( nowHours == nEndHours ) && ( nowHours == pEndHours ) 
+      && ( nowMinutes >= nEndMinutes ) && ( nowMinutes <= pEndMinutes );
     };
 
 
