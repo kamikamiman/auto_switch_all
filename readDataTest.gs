@@ -1,4 +1,3 @@
-
 // ============================================================================================================ //
 //       【関数】 サービス予定表・在席リストから予定を取得                                                              //
 // ============================================================================================================ //
@@ -98,15 +97,6 @@ function ReadDataTest() {
         nightDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
         i++;                                                        // 次のメンバーをチェック
       }
-
-      // ログ確認用
-      console.log("行・列:" + rowNum, colNum);
-      console.log("setRowJudge:" + setRowJudge);
-      console.log("setColJudge:" + setColJudge);
-      console.log("nightDutysData:" + nightDutysData);
-      console.log("nightDutysData[0]:" + nightDutysData[0]);
-      console.log("nightDutysData[1]:" + nightDutysData[1]);
-
     };
   });
 
@@ -163,15 +153,6 @@ function ReadDataTest() {
         satDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
         i++;                                                        // 次のメンバーをチェック
       }
-
-      // ログ確認用
-      console.log("行・列:" + rowNum, colNum);
-      console.log("setRowJudge:" + setRowJudge);
-      console.log("setColJudge:" + setColJudge);
-      console.log("satDutysData:" + satDutysData);
-      console.log("satDutysData[0]:" + satDutysData[0]);
-      console.log("satDutysData[1]:" + satDutysData[1]);
-
     };
   });
 
@@ -209,7 +190,7 @@ function ReadDataTest() {
     constructor(setMonth, daysLeft) { 
       this.setMonth = setMonth;
       this.daysLeft = daysLeft;
-    }
+    };
 
     /* ========================================================================= /
     /  ===  日付・曜日・ISOWA休日情報を取得 [ メソッド ]                           === /
@@ -692,8 +673,7 @@ function ReadDataTest() {
       let normalHol;         // 通常休み判定
       
 //      // メンバーの休日パターンを取得(シート２)  ( シート左列のメンバー + シート2記入メンバー ) >>> 土日休み
-//      const normalHolMems = offDayList.getRange(1, 1, offLastRow, 1).getValues().flat();    // 土日休みのメンバーを取得(サービス)
-      const normalHolMembers = membersNameL.concat(normalHolMems);                          // 土日休みのメンバー(全員分・空白含む)
+      const normalHolMembers = membersNameL.concat(normalHolMems);    // 土日休みのメンバー(全員分・空白含む)
       
       // 通常の土日休みパターンの場合、 「true」 を返す
       normalHol = normalHolMembers.includes(this.name);
@@ -709,11 +689,7 @@ function ReadDataTest() {
       holColor = colors === "#d9d9d9" || colors === "#efefef" || colors === "#cccccc";
       
       // セル背景色が灰色 又は ISOWA休日 の場合は休日と判定
-      if ( holColor || offJudge ) {
-        holJudge = true;
-      } else {
-        holJudge = false;        
-      }
+      if ( holColor || offJudge ) holJudge = true;
 
       // 通常休みパターンで土曜(当番以外)・日曜日の場合は休日と判定
       if ( normalHol ) {
@@ -722,7 +698,7 @@ function ReadDataTest() {
       
       return holJudge;
 
-    }
+    };
 
 
   
@@ -732,8 +708,6 @@ function ReadDataTest() {
     /  ======================================================================== */
     
     FlexTimeAndConts(conts) {
-
-      console.log("cont:" + conts);
       
       // 変数の初期化
       let flexTime = '';
@@ -781,14 +755,9 @@ function ReadDataTest() {
           reveresdString = reversedArray.join('');
         }
       
-        console.log(this.name);
-        console.log("belowNow:" + belowNow);
-        console.log("el:" + el);
-
         // 文字列の一番目に空白があるか判定
         if ( aboveNow ) blankNum = reveresdString.search(/\s/); // 前半の文字列
         if ( belowNow ) blankNum = el.search(/\s/);             // 後半の文字列
-      
       
         // 文字列から時間と予定をそれぞれ取得
         // 空白がない時
@@ -849,7 +818,7 @@ function ReadDataTest() {
       
       return flexTimeConts;  // 配列を返す
       
-    }
+    };
 
 
     /* ========================================================================= /
@@ -860,7 +829,7 @@ function ReadDataTest() {
       return str.replace(/[０-９]/g, function(s) {
         return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
         });
-    }
+    };
 
 
 
@@ -975,7 +944,7 @@ function ReadDataTest() {
         }
       });
     
-    }
+    };
     
     
     AddSchedPeriod(period) {

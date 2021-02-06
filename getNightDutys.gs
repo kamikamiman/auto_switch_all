@@ -1,4 +1,11 @@
+/* ========================================================================= /
+/  ===  在席リストの夜勤担当者の行・列番号を取得 [ 関数 ]                       === /
+/  ======================================================================== */      
+
 function GetNightDutys() {
+
+  console.log("GetNightDutys実行！");
+
 
   // メンバー（土曜・24h）から対象者の情報を取得
   const sheetAdress = ssGet.getSheetByName('メンバー（土曜・24h）'); // スプレットシート情報を取得
@@ -34,58 +41,42 @@ function GetNightDutys() {
   const _ = Underscore.load();
   const namesTrans = _.zip.apply(_, names);
 
-  // 夜勤当番者の配列番号を取得
-  nameNum1 = namesTrans[0].indexOf(nightDuty1);
-  nameNum2 = namesTrans[0].indexOf(nightDuty2);
+
+  // サービス作業予定表の24H記入欄に空白の場合 >>> 予定表から夜勤担当者を取得
+  if ( nightDutys == "" ) {
+    console.log("GetNightContetns実行!");
+    GetNightContetns();
+
+    // 夜勤当番者の配列番号を取得
+    nameNum1 = namesTrans[2].indexOf(nightName1);
+    nameNum2 = namesTrans[2].indexOf(nightName2);
+  } else {
+
+    // 夜勤当番者の配列番号を取得
+    nameNum1 = namesTrans[0].indexOf(nightDuty1);
+    nameNum2 = namesTrans[0].indexOf(nightDuty2);
+
+    // 夜勤当番者のフルネームを取得
+    nightName1 = namesTrans[2][nameNum1];
+    nightName2 = namesTrans[2][nameNum2];
+  }
 
   // 夜勤当番者のアドレスを取得
   nightAddress1 = namesTrans[1][nameNum1];
   nightAddress2 = namesTrans[1][nameNum2];
-
-  // 夜勤当番者のフルネームを取得
-  nightName1 = namesTrans[2][nameNum1];
-  nightName2 = namesTrans[2][nameNum2];
-
-
-  // サービス作業予定表の24H記入欄に空白の場合 >>> 予定表から夜勤担当者を取得
-  if ( nightDutys == "" ) GetNightContetns();
 
   // 時間を取得
   const date = new Date();
   const nowHours = Utilities.formatDate(date, 'Asia/Tokyo', 'H');
 
   // [関数]メール送信の実行条件
-  const sendTimer = ( nowHours == "16" );
+  const sendTimer = ( nowHours == "19" );
 
   // 実行時間が16時台だったら実行
   if ( sendTimer ) NightSendMail();
-
+    
   // 夜勤担当者
   const nightShiftDuty = [ nightName1, nightName2 ];
-
-  console.log("nightShiftDuty:" + nightShiftDuty);
-
-  // ログ確認用
-  console.log("最終行：" + lastRow);
-  console.log("送信対象者：" + names);
-  console.log("２４Ｈ当番(2名)：" + nightDutys);
-  console.log("２４Ｈ当番・金曜日(2名)：" + nightDutysFri);
-  console.log("当番2名判定：" + dutysJudge);
-  console.log("当番2名判定(金曜日)：" + dutysFriJudge);
-  console.log("24時間当番(1人目)：" + nightDuty1);
-  console.log("24時間当番(2人目)：" + nightDuty2);
-  console.log("当番フルネーム(1人目)：" + nightName1);
-  console.log("当番フルネーム(2人目)：" + nightName2);
-  console.log("送信者一覧:" + namesTrans[0]);
-  console.log("メールアドレス一覧:" + namesTrans[1]);
-  console.log("担当者1人目：" + nightAddress1);
-  console.log("担当者2人目：" + nightAddress2);
-  console.log("arrDayNum:" + arrDayNum);
-  console.log(nightBG[arrDayNum]);
-  console.log(nightAreaBG[arrDayNum]);
-  console.log("nightBG:" + nightBG); 
-  console.log("nightAreaBG:" + nightAreaBG);
-
 
   return nightShiftDuty;
 
@@ -117,9 +108,6 @@ function GetNightDutys() {
     nightName1 = nightDutysArr[0];
     nightName2 = nightDutysArr[1];
 
-    // ログ確認用
-    console.log("nightDutysArr:" + nightDutysArr);
-
   };
 
 
@@ -128,6 +116,9 @@ function GetNightDutys() {
   /  ======================================================================== */      
 
   function NightSendMail() {
+
+    console.log("NightSendMail実行！");
+
 
     // セル背景色(赤色)判定
     const red = nightBG[arrDayNum] === '#ff0000';
@@ -146,13 +137,13 @@ function GetNightDutys() {
 
       // メールの本文
       const body = '\
-${nightDuty1}さん,${nightDuty2}さん\n\n\
+${nightName1}さん, ${nightName2}さん\n\n\
 お仕事お疲れ様です。\n\
 本日、24時間当番お願いします。\n\
 まだ電話確認が取れていません。\n\
 確認をお願いします。'
-.replace('${nightDuty1}', nightDuty1)
-.replace('${nightDuty2}', nightDuty2);
+.replace('${nightName1}', nightName1)
+.replace('${nightName2}', nightName2);
 
       // オプション(送信元・bcc)      
       const options = { name: 'ISOWA_support',
@@ -164,17 +155,7 @@ ${nightDuty1}さん,${nightDuty2}さん\n\n\
         subject,
         body,
         options
-      );
-
-    // ログ確認用
-    // console.log("宛先:" + to);
-    // console.log("タイトル:" + subject);
-    // console.log("本文:" + body);
-    // console.log("オプション:" + options);
-    // console.log("赤色:" + red); 
-    // console.log("赤色(金曜):" + redFri); 
-
-
+      )
     }
   };
 };

@@ -1,10 +1,7 @@
 // @ts-nocheck
 /*
 □ 機能追加予定
-  ・ 24時間サービス転送設定確認のスクリプトをこの中に移植する。  >>> 完了
-  ・ 24時間サービス転送確認のスクリプトをこの中に移植する。     >>> 完了
-  ・ 24時間の場合、名前のセルを塗りつぶす。  >> 8:30に切替     >>> 完了
-  ・ 土曜当番の場合、名前のセルを塗りつぶす。 >> 8:30に切替     >>> 完了
+  ・ 
 
 □ 本番前の注意点
   ・ 予定表と在席リストの漢字が違いエラーとなる事例あり。(福崎さん等)
@@ -16,8 +13,7 @@
 □ 確認事項
 
 □ バグ修正
-   ・ フレックス時間が〇〇:30の時に、〇〇:00でも状態が切り替わる可能性がある。 >>> 完了
-
+  ・ 
 */
 
 
@@ -26,9 +22,6 @@
 // ============================================================================================================ //
 
 function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
-
-  // console.log("...membersObj:" + membersObj);
-  // console.log("getRowCol:" + getRowCol);
   
   // 現在の時間（△時）を取得
   const date = new Date();
@@ -39,7 +32,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   const nextDate = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');       // 明日の日付を取得
 
   // 出社時・退社時のプロジェクト実行判定
-  const startTimer = ( nowHours ==  8 && 20 <= nowMinutes && nowMinutes <= 40 ); // 出社時
+  const startTimer = ( nowHours ==  8 && 20 <= nowMinutes && nowMinutes <= 30 ); // 出社時
   const endTimer   = ( nowHours == 17 && 12 <= nowMinutes && nowMinutes <= 25 ); // 退社時
 
   // 曜日判定
@@ -135,12 +128,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   
 
     // 在席リストに書込む最終の状態・詳細項目を変数に格納
-  
-
-    // console.log(nowHours, nowMinutes, startTimer, endTimer);
-
-    // フレックス開始時のプロジェクト実行判定
-    let strFlexTimer = false;
+    let strFlexTimer = false;   // フレックス開始時のプロジェクト実行判定
     
     // 実行時間が **:00 の場合
     if ( nStrMinutes > pStrMinutes ) {
@@ -151,11 +139,6 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
        && ( nowMinutes >= nStrMinutes )&& ( nowMinutes <= pStrMinutes );
     };
 
-    console.log("strFlexTimer:" + strFlexTimer);
-    console.log("pStrMinutes:" + pStrMinutes);
-    console.log("pStrHours:" + pStrHours);
-    console.log("nStrMinutes:" + nStrMinutes);
-    console.log("nStrHours:" + nStrHours);
           
     // フレックス終了時のプロジェクト実行判定
     let endFlexTimer = false;
@@ -214,7 +197,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
       
       const attendSel = attendSels.indexOf(name) !== -1; // 在席時の表示を東館するかの判定
       
-      //  == データの書込(状態・予定記入) == //
+      // データの書込(状態・予定記入)
       
       // [フレックス] >>> 状態を[フレックス]に変更
       if ( flex && notExecStr && !strFlexTimer ) {
@@ -249,7 +232,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
         console.log("不明");
       }
   
-      // 詳細予定を書込 //
+      // 詳細予定を書込
       details.forEach( el => {
         if ( el === name ) SetStatus("detail", period);
       });
@@ -261,33 +244,20 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     /  ===  帰宅 or フレックス終了時に実行  関数                                    === /
     /  ======================================================================== */
     function EndWrite(period) {
-      
-      // ログ確認用(書込み直前の状態)
-      // console.log("name:" + name);
-      // console.log("setContents:" + setContents);
-      // console.log("detail:" + detail);
-      // console.log("notExecStr:" + notExecStr);
-      // console.log("notExecEnd:" + notExecEnd);
 
-
-
-      // == データの書込(状態・予定記入) == //
-      
-      // 現在の状態が[外出] or [出張]以外 >>> 状態を[帰宅]に変更 
+      // データの書込(状態・予定記入)
       if ( !goOutNow && !tripNow ) {
-        SetStatus("contents", '帰宅');
+        SetStatus("contents", '帰宅');      // 現在の状態が[外出] or [出張]以外 >>> 状態を[帰宅]に変更 
         
         // 当日 or 翌日 が[休日] >>> 状態を[休み]に変更
         if ( offDayJudge || nextOffDayJudge ) SetStatus("contents", '休み');
 
-        // == 詳細予定を書込 == //
-        details.forEach( el => SetStatus("detail", period));
-      }
-      
-
-      
+        // 詳細予定を書込
+        details.forEach( el => {
+          if (el === name ) SetStatus("detail", period);
+        })
+      } 
     }
-
   });
 
 
@@ -296,15 +266,17 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
 
 
   SetInfo(); // 在席リストに情報を書込
-  if ( !saturday && !sunday && startTimer ) SetDuty(getRowCol); // 夜勤担当者の名前のセルを塗りつぶす
-  if ( saturday && startTimer ) SetDuty(getSatNames);           // 土曜当番の名前のセルを塗りつぶす
-  if ( saturday && endTimer ) ResetBackground();                // メンバーの名前のセルの背景色をリセット
+  if ( !saturday && !sunday && startTimer ) SetDuty(getRowCol, "nightDuty"); // 夜勤担当者の名前のセルを塗りつぶす
+  if ( saturday && startTimer ) SetDuty(getSatNames, "satDuty");             // 土曜当番の名前のセルを塗りつぶす
+  if ( saturday && endTimer ) ResetBackground();                             // メンバーの名前のセルの背景色をリセット
   
 
   /* ========================================================================= /
   /  ===  在席リストに情報を書込   関数                                         === /
   /  ======================================================================== */
   function SetInfo() {
+
+    console.log("SetInfo実行！");
     
     // 在席リストの書込対象
     let mems = [];
@@ -376,30 +348,36 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   /* ========================================================================= /
   /  ===  当番の名前のセルを塗りつぶす(土曜当番・２４時間) 関数                    === /
   /  ======================================================================== */
-  function SetDuty() {
+  function SetDuty(rowCol, select) {
+
+    console.log("SetDuty実行!");
 
     // セルの背景色の初期化
     ResetBackground();
 
-    // 夜勤担当者の在席リストの行・列番号(配列)
-    const rowCol1 = getRowCol[0];
-    const rowCol2 = getRowCol[1];
+    // 担当者の在席リストの行・列番号(配列)
+    const rowCol1 = rowCol[0];
+    const rowCol2 = rowCol[1];
 
-    // 夜勤担当者1人目の行・列番号
+    // 担当者1人目の行・列番号
     const row1 = rowCol1[0];  // 行番号
     const col1 = rowCol1[1];  // 列番号
 
-    // 夜勤担当者2人目の行・列番号
+    // 担当者2人目の行・列番号
     const row2 = rowCol2[0];  // 行番号
     const col2 = rowCol2[1];  // 列番号
 
-    // 当番無し判定
-    const notDutyDay =  row1 === undefined;
 
     // 担当者のセルの背景色を塗りつぶす(当番ありの場合)
+    let setColor;
+    if ( select === "nightDuty" ) setColor = "#01FBFF";  // 24時間サービスの場合
+    if ( select === "satDuty" ) setColor = "#00F90D";    // 土曜当番の場合
+
+    const notDutyDay =  row1 === undefined;              // 当番無し判定
+
     if ( !notDutyDay ) {
-    attendList.getRange(row1, col1, 1, 1).setBackground("#01FBFF");
-    attendList.getRange(row2, col2, 1, 1).setBackground("#01FBFF");
+    attendList.getRange(row1, col1, 1, 1).setBackground(setColor);
+    attendList.getRange(row2, col2, 1, 1).setBackground(setColor);
     }
 
   };
@@ -409,6 +387,9 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   /  ===  セルの色をリセット 関数                                              === /
   /  ======================================================================== */
   function ResetBackground() {
+
+    console.log("ResetBackground実行!");
+
 
     // セルの背景色の初期化
     const colL = posiL - 2;

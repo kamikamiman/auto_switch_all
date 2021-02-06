@@ -31,8 +31,8 @@ function AutoSwitchTest() {
 
   // 取得した情報を分割
   const membersObj  = object[0];
-  const nightRowCol   = object[1];
-  const satRowCol = object[2];
+  const nightRowCol = object[1];
+  const satRowCol   = object[2];
   
   // 取得した情報から在席状態・予定を書込
   WriteDataTest(nightRowCol, satRowCol, ...membersObj);
@@ -155,11 +155,10 @@ function StartTrigger() {
   
   });
 }
+
 // プロジェクトトリガーで実行(不要なプロジェクトトリガーの削除用)
 function DeleteTrigger() {
   const triggers = ScriptApp.getProjectTriggers();  // 現在設定されているトリガーを取得
-//  const staySecond = 120;                           // 遅延時間を設定(秒)
-//  Utilities.sleep(staySecond * 1000);               // 設定時間だけ処理を遅らせる。 
   
   // 現在設定されているトリガーから指定したトリガーを全て削除
   for ( const trigger of triggers ){
@@ -224,14 +223,6 @@ const saturdayBG  = getCellBackgrounds[1]; // 土曜当番
 const nightBG     = getCellBackgrounds[2]; // ２４Ｈ当番
 const nightAreaBG = getCellBackgrounds[3]; // ２４Ｈ管轄
 const daysBG      = getCellBackgrounds[4]; // 日付
-
-
-// ログ確認用
-// console.log("scheduleData:" + scheduleData);
-// console.log("lunchDuty:" + lunchDuty);
-// console.log("saturdayDuty:" + saturdayDuty);
-// console.log("nightDuty:" + nightDuty);
-// console.log("nightArea:" + nightArea);
 
   
 // 本日の日付のセルの列番号を取得
