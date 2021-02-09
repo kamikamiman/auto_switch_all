@@ -23,6 +23,12 @@ function ReadDataTest() {
   });
 
 
+  console.log("targets:" + targets);
+  console.log("starts:" + starts);
+  console.log("ends:" + ends);
+  console.log("details:" + details);
+  console.log("attendSels:" + attendSels);
+
   // ----------------------------------------------------------------------------------------------------------- // 
   //       在席リストのメンバー情報                                                                                  //
   // ----------------------------------------------------------------------------------------------------------- //   
@@ -535,11 +541,16 @@ function ReadDataTest() {
         flex = flexPatterns.some( el => conts.indexOf(el) !== -1 );
         flexFull = fullFlex.some( el => conts.indexOf(el) !== -1 );
         if ( flex && !flexFull ) {
-          status += "ﾌﾚ";         
+
+          // 20210209_0940_フレックスの記載方法が違っていた場合はキャンセルする処理
           timeAndConts = this.FlexTimeAndConts(conts);
+          if ( !timeAndConts[2] ) status += "ﾌﾚ";
+
+          console.log("timeAndConts[2]:" + timeAndConts[2]);
+          console.log("status:" + status);
           
           // 直近のフレックスを予定取得時に実行
-          if ( func === "thisMon" && t === 0 ) {
+          if ( func === "thisMon" && t === 0 && !timeAndConts[2] ) {
             const getTimes = timeAndConts[0].split("〜");  // フレックスの開始終了時間を分割
             this.strFlexTime = getTimes[0];               // {obj} に直近のフレックス開始時間を追加
             this.endFlexTime = getTimes[1];               // {obj} に直近のフレックス終了時間を追加
@@ -728,8 +739,11 @@ function ReadDataTest() {
          console.log("不明");
       }
 
+      // 20210209_0940_フレックスの記載方法が違っていた場合の処理
       const above = _flexTime[0];             // 前半の文字列
-      const below = _flexTime[1];             // 後半の文字列
+      let   below = _flexTime[1];             // 後半の文字列
+      const cancelFlex = below.indexOf("ックス") !== -1 || below.indexOf("ｯｸｽ") !== -1;
+      if ( cancelFlex ) below = '';
       const flexAboBel = [ above, below ];    // 前半・後半の文字列を格納[配列]
             
       // 空文字判定(フレックス時間)
@@ -814,7 +828,7 @@ function ReadDataTest() {
       
       });
 
-      let flexTimeConts = [ flexTime, flexConts ]; // フレックス時間, 予定 を配列に格納
+      let flexTimeConts = [ flexTime, flexConts, cancelFlex ]; // フレックス時間, 予定 を配列に格納
       
       return flexTimeConts;  // 配列を返す
       
@@ -1133,6 +1147,9 @@ function ReadDataTest() {
       // 予定内容が 当番 だった場合
       if ( satDuty ) writePeriod += ' 当番';
 
+
+      console.log("writePeriod:" + writePeriod);
+
       return writePeriod;
 
     };
@@ -1153,6 +1170,8 @@ function ReadDataTest() {
     const row  = members.indexOf(target) + 1;             // 行番号 （本日）
     const nextRow  = nextMembers.indexOf(target) + 1;     // 行番号 （翌日）
 
+    console.log("row:" + row);
+
     // オブジェクト作成(予定表に名前があるメンバーのみ実行)
     if ( row > 0 && nextRow > 0) {
       const obj = new MemberObj(target, row, nextRow);       // オブジェクト{obj}作成
@@ -1162,6 +1181,8 @@ function ReadDataTest() {
       obj.GetRowColNum();                                    // {obj} に行・列番号・記入位置を追加
       obj.GetNowAttendance();                                // {obj} に在席状態と予定詳細を追加
       obj.GetSchedPeriod();                                  // {obj} に当日・翌日の予定(期間)を追加
+
+      console.log("メンバー:" + obj.name);
 
       // {obj}を[memberObj]に追加
       membersObj.push(obj);

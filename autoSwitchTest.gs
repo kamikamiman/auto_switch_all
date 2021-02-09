@@ -5,6 +5,7 @@
   const details = [];    // 予定欄
   const attendSels = []; // 在席時の表示選択(東館選択時に格納, 通常は在席表示)
 
+
 //  =============  以下に記入された以外の文字の場合は、設定が反映されませんので注意!  =============  //
 
   // 休日への切替判定を設定 (サービス予定表に設定文字の記入があるか)
@@ -206,7 +207,7 @@ if ( nextMonth != 4 ) {
 // サービス作業予定表の情報を取得 ( 昼休み当番・土曜当番・２４Hサービス・日付 )
 const firstRow = 2;                                                    // セル選択開始行
 const lastCol  = schedule.getLastColumn();                             // セル選択終了列
-const _scheduleData = schedule.getRange(firstRow, 2, 5, lastCol -1);   // 情報の取得範囲
+const _scheduleData = schedule.getRange(firstRow, 2, 6, lastCol -1);   // 情報の取得範囲
 const scheduleData = _scheduleData.getValues();                        // 情報を取得(配列)
 const getCellBackgrounds = _scheduleData.getBackgrounds();             // セルの背景色を取得(配列)
 
@@ -217,12 +218,28 @@ const nightDuty    = scheduleData[2];      // ２４Ｈ当番
 const nightArea    = scheduleData[3];      // ２４Ｈ管轄
 const days         = scheduleData[4];      // 日付
 
+// 各情報を分割して取得(更新後)
+// const lunchDuty      = scheduleData[0];      // 昼当番
+// const saturdayDutys1 = scheduleData[1];      // 土曜当番(1人目)
+// const saturdayDutys2 = scheduleData[2];      // 土曜当番(2人目)
+// const nightDutys1    = scheduleData[3];      // ２４時間(1人目)
+// const nightDutys2    = scheduleData[4];      // ２４時間(2人目)
+// const days           = scheduleData[5];      // 日付
+
 // 各セルの背景色を分割して取得
 const lunchBG     = getCellBackgrounds[0]; // 昼当番
 const saturdayBG  = getCellBackgrounds[1]; // 土曜当番
 const nightBG     = getCellBackgrounds[2]; // ２４Ｈ当番
 const nightAreaBG = getCellBackgrounds[3]; // ２４Ｈ管轄
 const daysBG      = getCellBackgrounds[4]; // 日付
+
+// 各セルの背景色を分割して取得(更新後)
+// const lunchBG     = getCellBackgrounds[0]; // 昼当番
+// const saturdayBG1 = getCellBackgrounds[1]; // 土曜当番(1人目)
+// const saturdayBG2 = getCellBackgrounds[2]; // 土曜当番(2人目)
+// const nightBG1    = getCellBackgrounds[3]; // ２４時間(1人目)
+// const nightBG2    = getCellBackgrounds[4]; // ２４時間(2人目)
+// const daysBG      = getCellBackgrounds[5]; // 日付
 
   
 // 本日の日付のセルの列番号を取得
@@ -267,3 +284,8 @@ const isowaOffDays = isoOffDayList.getRange(1,  1, isoOffLastRow, 1).getValues()
 
 // メンバーの休日パターンを取得(シート２)  ( シート左列のメンバー + シート2記入メンバー ) >>> 土日休み
 const normalHolMems = offDayList.getRange(1, 1, offLastRow, 1).getValues().flat();                          // 土日休みのメンバーを取得(サービス)
+
+// メンバー（土曜・24h）から対象者の情報を取得
+const sheetAdress = ssGet.getSheetByName('メンバー（土曜・24h）'); // スプレットシート情報を取得
+const lastRow = sheetAdress.getLastRow() - 1;
+const names = sheetAdress.getRange(2, 2, lastRow, 3).getValues();

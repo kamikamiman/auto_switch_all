@@ -2,41 +2,27 @@
 /  ===  在席リストの夜勤担当者の行・列番号を取得 [ 関数 ]                       === /
 /  ======================================================================== */      
 
-function GetNightDutys() {
+function _GetNightDutys() {
 
   console.log("GetNightDutys実行！");
 
   // 変数の初期化
-  let nightDuty1, nightDuty2;                 // 夜勤当番者の名前
   let nightAddress1, nightAddress2;           // 夜勤当番者のアドレス
   let nightName1, nightName2;                 // 夜勤当番者のフルネーム
 
   // 夜勤当番者を取得
-  let nightDutys    = nightDuty[arrDayNum];   // 夜勤当番者2名
-  let nightDutysFri = nightArea[arrDayNum];   // 金曜当番者2名
+  let nightDuty1 = nightDutys1[arrDayNum];   // 夜勤当番者1人目
+  let nightDuty2 = nightDutys2[arrDayNum];   // 夜勤当番者2人目
 
   // アドレス取得の条件判定
-  const friday = dayOfWeek === 5;                                  // 金曜日でtrue
-  const dutysJudge = nightDutys.indexOf('/') != -1;                // 当番2名判定
-  const dutysFriJudge = nightDutysFri.indexOf('/') != -1;          // 当番2名判定(金曜日)
-
-  // 金曜日以外 and セルに[/]を含む場合に実行
-  if ( !friday && dutysJudge ) {
-    nightDuty1 = nightDutys.split('/')[0];        // 1人目
-    nightDuty2 = nightDutys.split('/')[1];        // 2人目
-
-  // 金曜日 and セルに[/]を含む場合に実行
-  } else if ( friday && dutysFriJudge ) {
-    nightDuty1 = nightDutysFri.split('/')[0];        // 1人目
-    nightDuty2 = nightDutysFri.split('/')[1];        // 2人目
-  }
+  const dutysJudge = nightDuty1 != '';       // 当番1名判定
   
   // スプレットシートの行と列を反転させる。
   const _ = Underscore.load();
   const namesTrans = _.zip.apply(_, names);
  
   // サービス作業予定表の24H記入欄に空白の場合 >>> 予定表から夜勤担当者を取得
-  if ( nightDutys == "" ) {
+  if ( nightDuty1 == "" ) {
     GetNightContetns();
 
     // 夜勤当番者の配列番号を取得
@@ -60,11 +46,9 @@ function GetNightDutys() {
   // 時間を取得
   const date = new Date();
   const nowHours = Utilities.formatDate(date, 'Asia/Tokyo', 'H');
-  const nowMinutes = Utilities.formatDate(date, 'Asia/Tokyo', 'm');
-
 
   // [関数]メール送信の実行条件
-  const sendTimer = ( nowHours == "21" && nowMinutes >= "25" );
+  const sendTimer = ( nowHours == "16" );
 
   // 実行時間が16時台だったら実行
   if ( sendTimer ) NightSendMail();
@@ -95,13 +79,12 @@ function GetNightDutys() {
 
     console.log("GetNightContetns実行！");
       
+    // サービス作業予定表からメンバー全員分の当日の予定を取得
+    const thisContents = schedule.getRange(9, dayNum+1, monLastRow, 1).getValues().flat();
+
     // 変数の初期化
     const nightDutysArr = [];                              // 夜勤予定の行を格納
     i = 8;                                                 // 変数の初期化(予定取得開始の行番号)
-
-    // サービス作業予定表からメンバー全員分の当日の予定を取得
-    const thisContents = schedule.getRange(i, dayNum+1, monLastRow, 1).getValues().flat();
-
 
     // 当日の予定の中に夜勤予定があるかチェック
     thisContents.forEach( el => {
@@ -127,11 +110,11 @@ function GetNightDutys() {
 
 
     // セル背景色(赤色)判定
-    const red = nightBG[arrDayNum] === '#ff0000';
-    const redFri = nightAreaBG[arrDayNum] === '#ff0000';
+    const red1 = nightBG1[arrDayNum] === '#ff0000';
+    const red2 = nightBG2[arrDayNum] === '#ff0000';
 
     // セルの背景色が赤色でなければ実行
-    if ( !red || !redFri ) {
+    if ( !red1 || !red2 ) {
 
       // メールの送信先
       // let to = [ nightAddress1,nightAddress2 ];

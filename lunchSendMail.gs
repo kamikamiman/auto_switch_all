@@ -40,12 +40,15 @@ function LunchSendMail() {
       // オプション設定(送信元の名前)
       const options = { name: 'ISOWA_support'};
 
-      // GmailApp.sendEmail(
-      // to,
-      // subject,
-      // body,
-      // options
-      // );
+      // if ( to !== "" ) {
+      //   console.log(`${staffName}さんにメールを送信しました！`);
+      //   GmailApp.sendEmail(
+      //   to,
+      //   subject,
+      //   body,
+      //   options
+      //   );
+      // }
     }
   });
 

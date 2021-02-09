@@ -3,7 +3,7 @@
 /  ======================================================================== */      
 
 
-function GetSatDutys() {
+function _GetSatDutys() {
   
   console.log("GetSatDutys実行！")
 
@@ -12,8 +12,8 @@ function GetSatDutys() {
   const namesTrans = _.zip.apply(_, names);
 
   // 土曜当番者を取得
-  let saturdayDuty1 = saturdayDuty[arrDayNum];   // 土曜当番者(1人目)
-  let saturdayDuty2 = nightDuty[arrDayNum];      // 土曜当番者(2人目)
+  let saturdayDuty1 = saturdayDutys1[arrDayNum];   // 土曜当番者(1人目)
+  let saturdayDuty2 = saturdayDutys2[arrDayNum];   // 土曜当番者(2人目)
 
   // 土曜当番者の配列番号を取得
   nameNum1 = namesTrans[0].indexOf(saturdayDuty1);

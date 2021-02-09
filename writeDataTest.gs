@@ -1,7 +1,7 @@
 // @ts-nocheck
 /*
 □ 機能追加予定
-  ・ 
+  ・ 休みの表示をそれぞれ分ける。>>> 公休日の場合は、休日の色を分ける。
 
 □ 本番前の注意点
   ・ 予定表と在席リストの漢字が違いエラーとなる事例あり。(福崎さん等)
@@ -11,9 +11,13 @@
   ・ startTriggerの実行タイミングに注意
 
 □ 確認事項
+  ・ フレックス時に予定に誤ってフレックスと記載されていた場合の処理  >>> キャンセルする様に修正
+  ・ 4月からサービス作業予定表が変更になるため、修正が必要。昼当番・２４時間・土曜当番
+
 
 □ バグ修正
-  ・ 
+  ・ 外出・出張時に違う訪問先が連続した場合の表示 >>> 連日外出で客先が違う場合は、当日の客先のみが表示される。 >>> 要修正
+
 */
 
 
@@ -21,6 +25,7 @@
 //       【関数】 取得した予定を在席リストに書込                                                                          //
 // ============================================================================================================ //
 
+// 20210209_1435_公休日とそれ以外を判別するために状態を色分けする。
 function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   
   // 現在の時間（△時）を取得
@@ -32,8 +37,8 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   const nextDate = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');       // 明日の日付を取得
 
   // 出社時・退社時のプロジェクト実行判定
-  const startTimer = ( nowHours ==  8 && 20 <= nowMinutes && nowMinutes <= 30 ); // 出社時
-  const endTimer   = ( nowHours == 17 && 12 <= nowMinutes && nowMinutes <= 25 ); // 退社時
+  const startTimer = ( nowHours == 15 && 30 <= nowMinutes && nowMinutes <= 59 ); // 出社時
+  const endTimer   = ( nowHours == 21 && 12 <= nowMinutes && nowMinutes <= 56 ); // 退社時
 
   // 曜日判定
   const saturday = (dayOfNum === 6);   // 土曜日 判定
@@ -43,6 +48,18 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
   let memLeft   = [];
   let memCenter = [];
   let memRight  = [];
+
+  // メンバー情報を記入位置別で３つの配列に分ける。(変更前の情報)
+  let memLeftLog   = [];
+  let memCenterLog = [];
+  let memRightLog  = [];
+
+  // 変更点取得用の配列(ログ確認用)
+  let rogLeftList   = [];
+  let rogCenterList = [];
+  let rogRightList  = [];
+  let logLists = [];
+
   
   
   // 配列 [ memberObj ] のメンバー情報 (1人ずつ情報を取得)
@@ -77,9 +94,12 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     // const strFlexTime     = el.strFlexTime;           // フレックス開始時間
     // const endFlexTime     = el.endFlexTime;           // フレックス終了時間
  
-    // console.log("名前:" + name);
-    // console.log("当日の直近予定:" + schedPeriod);
-    // console.log("翌日の直近予定:" + nextSchedPeriod);
+    console.log("名前:" + name);
+    console.log("当日の直近予定:" + schedPeriod);
+    console.log("翌日の直近予定:" + nextSchedPeriod);
+
+    console.log("name:" + name);
+    console.log("twoMonStatus:" + twoMonStatus);
   
   
     // フレックス開始範囲
@@ -99,8 +119,8 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     const tripNow  = setContents === '出張中';
   
     // 当日の状態判定
-    const offDayJudge = twoMonStatus[0].indexOf('休み') !== -1 
-                     || twoMonStatus[0].indexOf('公休') !== -1;    
+    const offDayJudge = twoMonStatus[0].indexOf('休み') !== -1
+    const pubHolJudge = twoMonStatus[0].indexOf('公休') !== -1;    
     const attend  = twoMonStatus[0].indexOf('在席') !== -1;
     const satDuty = twoMonStatus[0].indexOf('当番') !== -1;
     const goOut   = twoMonStatus[0].indexOf('外出') !== -1;
@@ -111,7 +131,8 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
 
     
     // 状態判定(翌日)
-    const nextOffDayJudge = twoMonStatus[1].indexOf('休み') !== -1 || twoMonStatus[1].indexOf('公休') !== -1;  // 休み
+    const nextOffDayJudge = twoMonStatus[1].indexOf('休み') !== -1      // 休み
+    const nextPubHolJudge = twoMonStatus[1].indexOf('公休') !== -1;     // 公休
     const nextGoOut       = twoMonStatus[1].indexOf('外出') !== -1;     // 外出
     const nextTrip        = twoMonStatus[1].indexOf('出張') !== -1;     // 出張
     // const nextAttend      = twoMonStatus[1].indexOf('在席') !== -1;     // 在席
@@ -153,6 +174,24 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     };
 
 
+    let color = "#FFFFFF";
+
+      // 状態の背景色
+      if ( pubHolJudge || nextPubHolJudge ) {
+        color = "#FFFFFF";
+      } else if ( offDayJudge || nextOffDayJudge ) {
+        color = "#FFF2CC";
+      }
+
+
+    // メンバー記入位置( 左 ・ 中央 ・ 右 )によって３つの配列に分類し、在席状態と予定詳細を格納(ログ確認用)
+    if ( position === "L" ) memLeftLog.push([name, rowNum, setContents, detail, color]);
+    if ( position === "C" ) memCenterLog.push([name, rowNum, setContents, detail, color]);
+    if ( position === "R" ) memRightLog.push([name, rowNum, setContents, detail, color]);
+
+
+// -----   ここから在席状態と予定を書込関数実行   --------------------------------- //
+
     // 在席状態と当日の予定を書込( 出社時 or フレックス開始時 )
     starts.forEach( start => {
       if ( start === name ) {
@@ -169,11 +208,35 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
       }
     });
 
-    // メンバー記入位置( 左 ・ 中央 ・ 右 )によって３つの配列に分類し、在席状態と予定詳細を格納
-    if ( position === "L" ) memLeft.push([name, rowNum, setContents, detail]);
-    if ( position === "C" ) memCenter.push([name, rowNum, setContents, detail]);
-    if ( position === "R" ) memRight.push([name, rowNum, setContents, detail]);
+ 
 
+// --------------------------------------------------------------------------- //
+
+
+
+    // メンバー記入位置( 左 ・ 中央 ・ 右 )によって３つの配列に分類し、在席状態と予定詳細を格納
+    if ( position === "L" ) memLeft.push([name, rowNum, setContents, detail, color]);
+    if ( position === "C" ) memCenter.push([name, rowNum, setContents, detail, color]);
+    if ( position === "R" ) memRight.push([name, rowNum, setContents, detail, color]);
+
+
+    // メンバー状態の変更点を取得(ログ確認用)
+    const leftLog   = [ memLeft, memLeftLog ];
+    const centerLog = [ memCenter, memCenterLog ];
+    const rightLog  = [ memRight, memRightLog];
+    const allLog = [ leftLog, centerLog, rightLog ];
+    logLists = [ rogLeftList, rogCenterList, rogRightList ];
+
+    i = 0; // 変数の初期化
+
+    // 状態の変更点を３列分取得
+    allLog.forEach( el => {
+      logLists[i] = [...el[0], ...el[1]].filter( value => 
+                    !el[0].some(ary => ary.every((a, b) => a === value[b])) || 
+                    !el[1].some(ary => ary.every((a, b) => a === value[b]))
+                  );
+      i++;  // 書込先を変更
+    })
 
 
     /* ========================================================================= /
@@ -226,7 +289,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
         SetStatus("contents", '在宅');
         
       // [休み] >>> 状態を[休み]に変更
-      } else if ( offDayJudge ) {
+      } else if ( offDayJudge || pubHolJudge ) {
         SetStatus("contents", '休み');
       } else {
         console.log("不明");
@@ -236,6 +299,13 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
       details.forEach( el => {
         if ( el === name ) SetStatus("detail", period);
       });
+
+
+      // ログ確認用
+      console.log("name:" + name);
+      console.log("setContents:" + setContents);
+      console.log("detail:" + detail);
+
       
     }
 
@@ -250,15 +320,27 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
         SetStatus("contents", '帰宅');      // 現在の状態が[外出] or [出張]以外 >>> 状態を[帰宅]に変更 
         
         // 当日 or 翌日 が[休日] >>> 状態を[休み]に変更
-        if ( offDayJudge || nextOffDayJudge ) SetStatus("contents", '休み');
+        if ( offDayJudge || pubHolJudge || nextOffDayJudge || nextPubHolJudge ) SetStatus("contents", '休み');
 
         // 詳細予定を書込
         details.forEach( el => {
           if (el === name ) SetStatus("detail", period);
         })
       } 
+
+      // ログ確認用
+      console.log("name:" + name);
+      console.log("setContents:" + setContents);
+      console.log("detail:" + detail);
+
     }
+
   });
+
+  // ログ確認用
+  console.log("変更後:" + memLeft);
+  console.log("変更前:" + memLeftLog);
+  console.log("変更点:" + logLists);
 
 
 
@@ -285,6 +367,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     const memInfoL = [ memLeft, posiL ];          // 在席リスト左側の列(メンバー情報)
     const memInfoC = [ memCenter, posiC ];        // 在席リスト中側の列(メンバー情報) 
     const memInfoR = [ memRight,posiR ];          // 在席リスト右側の列(メンバー情報)
+
     
     // 各列にメンバーが１人以上いた場合、配列[mems]に格納
     if ( memInfoL[0].length !== 0 ) mems.push(memInfoL);
@@ -318,7 +401,12 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     
       // 配列[_blankArray]の行の情報を取得(空情報)
       _blankArray.forEach( el => {
-        blankContents = attendList.getRange( el, mem[1]-2, 1, 4 ).getValues().flat();
+        // blankContents = attendList.getRange( el, mem[1]-2, 1, 4 ).getValues().flat();
+        blankContents = attendList.getRange( el, mem[1]-2, 1, 4 ).getValues();
+        blankContents.push("#FFFFFF");
+        blankContents = blankContents.flat();
+        console.log("blankContents:" + blankContents);
+
         blankContents[1] = el;
         blankArray.push(blankContents);   
       });
@@ -332,12 +420,25 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
       // ログ確認用(書込情報)
       console.log(memsArray);
 
+
       // メンバー名・行番号を削除
-      memsArray.forEach( el => el.splice( 0, 2 ) );  
+      memsArray.forEach( el => el.splice(0, 2) );
+
+      // 配列を2つに分割 [状態・予定], [セル背景色]
+      let setConts = [];
+      let setColors = [];
+
+      memsArray.forEach( el => setConts.push(el.slice(0, 2)) );
+      memsArray.forEach( el => setColors.push(el.slice(2)) );  
+
+      console.log("memsArray:" + memsArray);
+      console.log("setContents:" + setConts);
+      console.log("setColors:" + setColors);
 
       // メンバー状態をスプレットシートに書込
       let row = maxNum - 2;
-      attendList.getRange(3, mem[1], row, 2).setValues(memsArray);
+      attendList.getRange(3, mem[1], row, 2).setValues(setConts);
+      attendList.getRange(3, mem[1], row, 1).setBackgrounds(setColors);
  
     });
     
