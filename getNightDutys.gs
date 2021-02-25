@@ -15,8 +15,11 @@ function GetNightDutys() {
   let nightDutys    = nightDuty[arrDayNum];   // 夜勤当番者2名
   let nightDutysFri = nightArea[arrDayNum];   // 金曜当番者2名
 
-  // アドレス取得の条件判定
-  const friday = dayOfWeek === 5;                                  // 金曜日でtrue
+  // アドレス取得の条件判定_20210210
+  const friday   = dayOfWeek === 5;                                // 金曜日でtrue
+  const saturday = dayOfWeek === 6;                                // 土曜日でtrue
+  const sunday   = dayOfWeek === 0;                                // 日曜日でtrue
+
   const dutysJudge = nightDutys.indexOf('/') != -1;                // 当番2名判定
   const dutysFriJudge = nightDutysFri.indexOf('/') != -1;          // 当番2名判定(金曜日)
 
@@ -64,23 +67,22 @@ function GetNightDutys() {
 
 
   // [関数]メール送信の実行条件
-  const sendTimer = ( nowHours == "21" && nowMinutes >= "25" );
+  const sendTimer = ( nowHours == "7" && nowMinutes >= "25" );
 
   // 実行時間が16時台だったら実行
-  if ( sendTimer ) NightSendMail();
+  // if ( sendTimer && !saturday && !sunday ) NightSendMail();
     
   // 夜勤担当者
   const nightShiftDuty = [ nightName1, nightName2 ];
 
-  // ログ確認用
-  console.log("namesTrans:" + namesTrans[0]);
-  console.log("nameNum1:" + nameNum1);
-  console.log("nameNum2:" + nameNum2);
-  console.log("nightName1:" + nightName1);
-  console.log("nightName2:" + nightName2);
-  console.log("nightAddress1:" + nightAddress1);
-  console.log("nightAddress2:" + nightAddress2);
-  console.log("nightShiftDuty:" + nightShiftDuty);
+  // ログ確認用(確定)
+  console.log("namesTrans(夜勤担当リスト名):" + namesTrans[0]);
+  console.log("nameNum1(リストの配列番号1):" + nameNum1);
+  console.log("nameNum2(リストの配列番号2):" + nameNum2);
+  console.log("nightName1(夜勤担当名1):" + nightName1);
+  console.log("nightName2(夜勤担当名2):" + nightName2);
+  console.log("nightAddress1(アドレス1):" + nightAddress1);
+  console.log("nightAddress2(アドレス2):" + nightAddress2);
 
 
   return nightShiftDuty;

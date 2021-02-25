@@ -57,14 +57,13 @@ function _GetNightDutys() {
   const nightShiftDuty = [ nightName1, nightName2 ];
 
   // ログ確認用
-  console.log("namesTrans:" + namesTrans[0]);
-  console.log("nameNum1:" + nameNum1);
-  console.log("nameNum2:" + nameNum2);
-  console.log("nightName1:" + nightName1);
-  console.log("nightName2:" + nightName2);
-  console.log("nightAddress1:" + nightAddress1);
-  console.log("nightAddress2:" + nightAddress2);
-  console.log("nightShiftDuty:" + nightShiftDuty);
+  console.log("namesTrans(夜勤担当リスト名):" + namesTrans[0]);
+  console.log("nameNum1(リストの配列番号1):" + nameNum1);
+  console.log("nameNum2(リストの配列番号2):" + nameNum2);
+  console.log("nightName1(夜勤担当名1):" + nightName1);
+  console.log("nightName2(夜勤担当名2):" + nightName2);
+  console.log("nightAddress1(アドレス1):" + nightAddress1);
+  console.log("nightAddress2(アドレス2):" + nightAddress2);
 
 
   return nightShiftDuty;

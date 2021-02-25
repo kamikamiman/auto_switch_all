@@ -65,7 +65,7 @@ function TransferSetMail() {
 
  };
 
- // ログ確認用
+ // ログ確認用(確定)
  console.log("今月:" + nowMonth)
  console.log("前月:" + beforeMonth);
  console.log("前月の最終列:" + lastColumn);

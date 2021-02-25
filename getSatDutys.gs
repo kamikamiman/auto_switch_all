@@ -23,6 +23,10 @@ function GetSatDutys() {
   saturdayName1 = namesTrans[2][nameNum1];
   saturdayName2 = namesTrans[2][nameNum2];
 
+  // ログ確認用(確定)
+  console.log("saturdayName1(土曜当番1):" + saturdayName1);
+  console.log("saturdayName2(土曜当番2):" + saturdayName2);
+
   // 土曜当番者
   const satDuty = [ saturdayName1, saturdayName2 ];
 

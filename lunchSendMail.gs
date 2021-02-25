@@ -23,8 +23,8 @@ function LunchSendMail() {
       const staffNumber = staffNames.indexOf(staffName);
       const staffAdress = staffAdresses[staffNumber];
 
-      // ログ確認用
-      console.log("担当者：" + staffAdress);
+      // ログ確認用(確定)
+      console.log("担当者アドレス：" + staffAdress);
         
       // メールの送信先
       const to = staffAdress;
@@ -52,10 +52,10 @@ function LunchSendMail() {
     }
   });
 
-  // ログ確認用
+  // ログ確認用(確定)
   console.log("メンバー(サービス作業予定表)：" + lunchDuty);
   console.log("シート列番号(当日)：" + arrDayNum);
-  console.log("担当者 + アドレス：" + staffsTrans);
+  console.log("担当者リスト：" + staffsTrans);
   console.log("担当者:" + lunchDutyName);
   console.log("メンバー(昼休み当番用)：" + staffNames);
   console.log("メンバーアドレス(昼休み用)：" + staffAdresses);
