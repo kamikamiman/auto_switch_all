@@ -70,7 +70,7 @@ function GetNightDutys() {
   const sendTimer = ( nowHours == "7" && nowMinutes >= "25" );
 
   // 実行時間が16時台だったら実行
-  // if ( sendTimer && !saturday && !sunday ) NightSendMail();
+  // NightSendMail();
     
   // 夜勤担当者
   const nightShiftDuty = [ nightName1, nightName2 ];
@@ -132,8 +132,15 @@ function GetNightDutys() {
     const red = nightBG[arrDayNum] === '#ff0000';
     const redFri = nightAreaBG[arrDayNum] === '#ff0000';
 
+    // ログ確認用
+    console.log("red:" + red);
+    console.log("redFri:" + redFri);
+    console.log("!red && !redFri:" + (!red && !redFri));
+
     // セルの背景色が赤色でなければ実行
-    if ( !red || !redFri ) {
+    if ( !red && !redFri ) {
+
+      console.log("メールを送信しました！");
 
       // メールの送信先
       // let to = [ nightAddress1,nightAddress2 ];

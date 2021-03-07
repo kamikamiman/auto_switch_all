@@ -23,7 +23,7 @@
   let posiR = 15; // memRightの書込み先の列番号
 
 
-  // テストスイッチの種類を判定する変数
+  // テストスイッチの種類を判定する変数(在席リストの設定切替内にあるボタン)
   let startButton = false;
   let endButton   = false;
 
@@ -49,10 +49,8 @@ function AutoSwitchTest() {
 /***   出社時（テスト）スイッチを押した時に実行される関数   ***/
 /******************************************************/
 function StartSwitch() {
-
   startButton = true;  // 出社時判定
   AutoSwitchTest();    // 実行
-
 };
 
 
@@ -60,18 +58,14 @@ function StartSwitch() {
 /***   帰社時（テスト）スイッチを押した時に実行される関数   ***/
 /******************************************************/
 function EndSwitch() {
-
   endButton = true;  // 出社時判定
   AutoSwitchTest();    // 実行
-
 };
-
 
 
 /**************************************************/
 /***   指定した時間にスクリプトを実行するトリガー設定   ***/
 /**************************************************/
-// プロジェクトトリガーで実行
 function StartTrigger() {
 
   // 自動切替の設定時間を設定
@@ -82,10 +76,9 @@ function StartTrigger() {
                   "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", 
                   "22:30", "23:00", "23:30" ];
     
-  /* 関数[delTrigger]を実行する時間帯を設定 ( プロジェクトトリガー(AutoSwitch)を削除 )         //
+  /* 関数[delTrigger]を実行する時間帯を設定 ( プロジェクトトリガー(AutoSwitch)を削除 )             //
   // 使用済みのプロジェクトトリガー(AutoSwitch)を削除、新たにプロジェクトトリガー(AutoSwitch)を作成。 //
-  // setTimesで指定した時間帯に実行。                                                  */
-  
+  // setTimesで指定した時間帯に実行。                                                         */
   let delTimes = [ "1*00", "3*00", "6*00", "10*30", "12*30", "15*00", "18*00", "19*00", "21*30", "23*00" ];
   
   // フレックス実行時間とトリガー削除時間を配列に格納 ( 要素の順番に注意。 不要なトリガーを削除 >>> 新たにトリガーを作成 )
@@ -180,15 +173,18 @@ function StartTrigger() {
           console.log("AutoSwitchTest実行(2)");
         }
       }
-  
     });
-  
   });
-}
+};
 
-// プロジェクトトリガーで実行(不要なプロジェクトトリガーの削除用)
+
+/***************************************************************/
+/***   プロジェクトトリガーで実行(不要なプロジェクトトリガーの削除用   ***/
+/***************************************************************/
 function DeleteTrigger() {
-  const triggers = ScriptApp.getProjectTriggers();  // 現在設定されているトリガーを取得
+
+  // 現在設定されているトリガーを取得
+  const triggers = ScriptApp.getProjectTriggers();
   
   // 現在設定されているトリガーから指定したトリガーを全て削除
   for ( const trigger of triggers ){
@@ -196,8 +192,8 @@ function DeleteTrigger() {
       ScriptApp.deleteTrigger(trigger);
     }
   }
-  
-}
+};
+
 
 // -------------------------------- // 
 //    サービス作業予定表のシート情報     //
@@ -247,7 +243,7 @@ const nightDuty    = scheduleData[2];      // ２４Ｈ当番
 const nightArea    = scheduleData[3];      // ２４Ｈ管轄
 const days         = scheduleData[4];      // 日付
 
-// 各情報を分割して取得(更新後)
+// 各情報を分割して取得(70期以降のスプレットシート更新後)
 // const lunchDuty      = scheduleData[0];      // 昼当番
 // const saturdayDutys1 = scheduleData[1];      // 土曜当番(1人目)
 // const saturdayDutys2 = scheduleData[2];      // 土曜当番(2人目)
@@ -281,7 +277,6 @@ days.forEach( getDay => {
      arrDayNum = dayNum - 1;                                           // 日付の番号(配列用)
      dayOfWeek = new Date(getDay).getDay();                            // 曜日番号
    }
-
    nowDayNum += 1;
 });
 
@@ -298,6 +293,9 @@ const nextMonLastCol = nextSchedule.getLastColumn() -1;                         
 const nextMembers    = nextSchedule.getRange(1, 1, nextMonLastRow, 1).getValues().flat();               // メンバー情報
 const nextMemSched   = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCol +1).getValues();      // メンバー情報(予定も含む)
 const nextMemColor   = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCol +1).getBackgrounds(); // セルの背景色
+
+
+
 
 // -------------------------------- // 
 //       在席リストのシート情報         //

@@ -7,6 +7,8 @@
   ・ 時差出勤・時短出勤に対応。 時差 時短                 >>> 完了
   ・ テストスイッチを取り付ける。                        >>> 完了
   ・ 出張・外出時の状態切替時の時間を変更機能の追加         >>> 完了
+  ・ 半休(午前・午後)に対応
+
 
 □ 注意点
   ・ 予定表と在席リストの漢字が違いエラーとなる事例あり。(福崎さん等)
@@ -20,15 +22,7 @@
 
 
 □ バグ修正
-  ・ 外出・出張時に違う訪問先が連続した場合の表示 客先が変わる場合は、当日の客先のみが表示される。客先が変わる前で予定の取得を終了する。 >>> 完了
-  　 客先を追加で記入していくパターンも検討。                                                                             >>> 完了
-  ・ 金曜日の２４時間サービス担当者がうまく取得できない。比較対象が1人目完了後、リセットされずに2人目を比較していたので修正。          >>> 完了
-  ・ 時短・時差出勤の在席状態の切り替えがうまくいかない。8:25出勤時に切り替わってしまう。                                        >>> 完了
-  ・ 外出・出張時に連続しない予定の場合でも予定記入の項目に訪問先が複数表示されてしまう。                                        >>> 完了
-  ・ 連続した外出・出張の予定の場合、最終日の出発時間が反映されてしまう。                                                      >>> 完了
-  ・ 出張連続する場合で、複数の訪問先がある場合、複数表示されなくなった。                                                      >>> 完了
-  ・ 外出・出張時の出発時間指定した場合の時間表示を削除する。==> 予定が連続する場合に同じ客先が重複して表示される。                  >>> 完了
-  ・ 出張時の在席状態の切替が正常でない。時間でないのに切り替わる。 翌月の予定取得実行時に[numJudge]が書き変わってしまう。           >>> 完了
+
 
 */
 
@@ -50,7 +44,7 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
 
   // 出社時・退社時のプロジェクト実行判定
   const startTimer = ( nowHours ==  8 && 20 <= nowMinutes && nowMinutes <= 30 ); // 出社時
-  const endTimer   = ( nowHours == 18 && 12 <= nowMinutes && nowMinutes <= 30 ); // 退社時
+  const endTimer   = ( nowHours == 17 && 12 <= nowMinutes && nowMinutes <= 30 ); // 退社時
 
   // 24時間担当の再確認のプロジェクト実行判定
   const nightTimer = ( nowHours ==  16 && 00 <= nowMinutes && nowMinutes <= 10 ); // 出社時
@@ -210,25 +204,39 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
 
 // -----   ここから在席状態と予定を書込関数実行   --------------------------------- //
 
+    // 関数の実行判定
+    const flexEtcJudge   = flex || timeDiff1 || timeDiff2;
+    const startJudge     = !(timeDiff1 || timeDiff2) && (startTimer || startButton);          // 出社時 8:25 ( 時短・時差出勤以外 )
+    const endJudge       = !flexEtcJudge && !goOutNow && !tripNow && (endTimer || endButton); // 帰宅時 17:15 ( フレックス・時短・時差・外出中・出張中以外 )
+    const flexStartJudge = (flexEtcJudge || numJudge) && (strFlexTimer || startButton);       // フレックス・時短・時差 出社時 ( 指定した時間 )
+    const flexEndJudge   = flexEtcJudge && (endFlexTimer || endButton);                       // フレックス・時短・時差 帰宅時 ( 指定した時間 )
+    const allOffJudge    = offDayJudge || pubHolJudge || nextOffDayJudge || nextPubHolJudge;  // 休日 (当日・翌日)
+
     // 在席状態と当日の予定を書込( 出社時 or フレックス開始時 )
     starts.forEach( start => {
       if ( start === name ) {
 
-        console.log("!(flex || timeDiff1 || timeDiff2):" + !(flex || timeDiff1 || timeDiff2));
-        console.log("(startTimer || startButton):" + (startTimer || startButton));
-        console.log("(flex || timeDiff1 || timeDiff2 || numJudge):" + (flex || timeDiff1 || timeDiff2 || numJudge));
-        console.log("strFlexTimer:" + strFlexTimer);
+        // ログ確認用
+        console.log("name:" + name);
+        console.log("startJudge):" + startJudge);
+        console.log("flexStartJudge:" + flexStartJudge);
 
-        if ( !(flex || timeDiff1 || timeDiff2) && (startTimer) || startButton ) StartWrite();    // 通常出社時に実行
-        if ( (flex || timeDiff1 || timeDiff2 || numJudge) && strFlexTimer ) StartWrite();        // フレックス開始時に実行
+        // 出社時に実行
+        if ( startJudge || flexStartJudge ) StartWrite();
       }
     });
 
     // 在席状態と翌日の予定を書込( 帰宅時 or フレックス終了時 )
     ends.forEach( end => {
       if ( end === name ) {
-        if ( (!(flex || timeDiff1 || timeDiff2) && endTimer && !notExecEnd) || endButton ) EndWrite();  // 通常帰宅時に実行
-        if ( (flex || timeDiff1 || timeDiff2) && endFlexTimer ) EndWrite();                             // フレックス終了時に実行
+
+        // ログ確認用
+        console.log("name:" + name);
+        console.log("endJudge):" + endJudge);
+        console.log("flexEndJudge:" + flexEndJudge);
+
+        // 帰宅時に実行
+        if ( endJudge || flexEndJudge) EndWrite();        
       }
     });
 
@@ -236,18 +244,18 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     details.forEach( el => {
       if (el === name ) {
 
+        // ログ確認用
         console.log("name:" + name);
-        console.log("numJudge:" + numJudge);
-        console.log("strFlexTimer:" + strFlexTimer);
+        console.log("startJudge:" + startJudge);
+        console.log("flexStartJudge:" + flexStartJudge);
+        console.log("endJudge):" + endJudge);
+        console.log("flexEndJudge:" + flexEndJudge);
 
-        // 出社時の条件
-        if ( startTimer || startButton ) DetailWrite(schedPeriod);                                                          // 通常出社時に実行
-        if ( (flex || timeDiff1 || timeDiff2 || numJudge) && strFlexTimer ) DetailWrite(schedPeriod);                      // フレックス開始時に実行
+        // 出社時に実行
+        if ( startJudge || flexStartJudge ) DetailWrite(schedPeriod);
 
-        // 帰社時の条件
-        if ( (endTimer && !notExecEnd && !goOutNow && !tripNow) || endButton ) DetailWrite(nextSchedPeriod);                // 通常帰宅時に実行
-        if ( (flex || timeDiff1 || timeDiff2) && endFlexTimer && !goOutNow && !tripNow ) DetailWrite(nextSchedPeriod);      // フレックス終了時に実行
-
+        // 帰社時に実行
+        if ( endJudge || flexEndJudge ) DetailWrite(nextSchedPeriod);
       }
     });
 
@@ -367,15 +375,13 @@ function WriteDataTest(getRowCol, getSatNames, ...membersObj) {
     /  ======================================================================== */
     function EndWrite() {
 
-      // データの書込(状態・予定記入)
-      if ( !goOutNow && !tripNow ) {
-        SetStatus("contents", '帰宅');      // 現在の状態が[外出] or [出張]以外 >>> 状態を[帰宅]に変更 
-        
-        // 当日 or 翌日 が[休日] >>> 状態を[休み]に変更
-        if ( offDayJudge || pubHolJudge || nextOffDayJudge || nextPubHolJudge ) SetStatus("contents", '休み');
+      SetStatus("contents", '帰宅');      // データの書込(状態・予定記入)
+      console.log('帰宅');
 
-      } 
-
+      if ( !flexEtcJudge && allOffJudge ) {
+        SetStatus("contents", '休み');
+        console.log('休み');
+      }
     };
 
     /* ========================================================================= /

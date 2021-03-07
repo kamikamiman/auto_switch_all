@@ -193,9 +193,9 @@ function ReadDataTest() {
 
   const thisMonArr   = [];                    // 今月の配列(日付・曜日・ISOWA休日判定)
   const nextMonArr   = [];                    // 翌月の配列(日付・曜日・ISOWA休日判定)
-  const isoOffFormat = [];                  // ISOWA休日(書式設定後)
+  const isoOffFormat = [];                    // ISOWA休日(書式設定後)
   const daysOfMonth   = monLastCol - dayNum;  // 今月の残り日数
-  const daysOfNextMon = nextMonLastCol -1;     // 翌月の日数
+  const daysOfNextMon = nextMonLastCol -1;    // 翌月の日数
 
   const date = new Date();                                           // 当日の日付
   let dateFormat = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');  // 日付の書式をフォーマット
@@ -1400,9 +1400,7 @@ function ReadDataTest() {
 
   });
   
-  // ログ確認用(メンバー毎のオブジェクト)
-  // console.log(membersObj);
-
+  // 変数[object]にメンバー情報, 夜勤当番者 + 土曜当番者の行・列番号を格納
   const object = [ membersObj, nightDutysData, satDutysData ];
 
   // 配列を返す >>> whiteData関数に情報を渡す

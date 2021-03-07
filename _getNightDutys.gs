@@ -14,16 +14,21 @@ function _GetNightDutys() {
   let nightDuty1 = nightDutys1[arrDayNum];   // 夜勤当番者1人目
   let nightDuty2 = nightDutys2[arrDayNum];   // 夜勤当番者2人目
 
+  // アドレス取得の条件判定_20210210
+  const saturday = dayOfWeek === 6;                                // 土曜日でtrue
+  const sunday   = dayOfWeek === 0;                                // 日曜日でtrue
+
+
   // アドレス取得の条件判定
-  const dutysJudge = nightDuty1 != '';       // 当番1名判定
+  const dutysJudge = nightDuty1 === '';       // 当番1名判定
   
   // スプレットシートの行と列を反転させる。
   const _ = Underscore.load();
   const namesTrans = _.zip.apply(_, names);
  
   // サービス作業予定表の24H記入欄に空白の場合 >>> 予定表から夜勤担当者を取得
-  if ( nightDuty1 == "" ) {
-    GetNightContetns();
+  if ( dutysJudge && !saturday && !sunday ) {
+    GetNightContents();
 
     // 夜勤当番者の配列番号を取得
     nameNum1 = namesTrans[2].indexOf(nightName1);
@@ -51,7 +56,7 @@ function _GetNightDutys() {
   const sendTimer = ( nowHours == "16" );
 
   // 実行時間が16時台だったら実行
-  if ( sendTimer ) NightSendMail();
+  if ( sendTimer && !saturday && !sunday ) NightSendMail();
     
   // 夜勤担当者
   const nightShiftDuty = [ nightName1, nightName2 ];
@@ -74,16 +79,16 @@ function _GetNightDutys() {
   /  ===  当日の夜勤担当者の記入がない場合にメンバーの当日の予定から判定 [ 関数 ]     === /
   /  ======================================================================== */      
 
-  function GetNightContetns() {
+  function GetNightContents() {
 
-    console.log("GetNightContetns実行！");
+    console.log("GetNightContents実行！");
       
     // サービス作業予定表からメンバー全員分の当日の予定を取得
     const thisContents = schedule.getRange(9, dayNum+1, monLastRow, 1).getValues().flat();
 
     // 変数の初期化
     const nightDutysArr = [];                              // 夜勤予定の行を格納
-    i = 8;                                                 // 変数の初期化(予定取得開始の行番号)
+    i = 9;                                                 // 変数の初期化(予定取得開始の行番号)
 
     // 当日の予定の中に夜勤予定があるかチェック
     thisContents.forEach( el => {
