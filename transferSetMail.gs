@@ -25,22 +25,24 @@ function TransferSetMail() {
   // 前月のシートの最終列を取得
   const lastColumn = beforeSchedule.getLastColumn();
 
-  const getCellBackground = nightBG[arrDayNum];        // ２４Ｈ当番の当日のセル背景色
-  const getCellBackgroundFri = nightAreaBG[arrDayNum]; // ２４Ｈ管轄の当日のセル背景色
+  const getCellBackground1 = saturdayBG2[arrDayNum];        // 土曜日当番２の当日のセル背景色
+  const getCellBackground2 = nightBG[arrDayNum];            // ２４Ｈメンバーの当日のセル背景色
 
 
   // メール送信判定
-  const offDay      = (dayOfWeek === 0 || dayOfWeek === 6);                                    // 土曜・日曜でtrue
-  const sameName    = (nightArea[arrDayNum] === nightArea[arrDayNum-1]);                       // 前日と担当管轄一致でtrue
-  const notNightShift  = (nightArea[arrDayNum] == '');                                         // 24時間なしの場合でtrue
-  const switchCheck = (getCellBackground === '#ffff00' || getCellBackgroundFri === '#ffff00'); // 転送切替完了でtrue
+  const offDay         = (dayOfWeek === 0 || dayOfWeek === 6);                                    // 土曜・日曜でtrue
+  const sameName       = (nightArea[arrDayNum] === nightArea[arrDayNum-1]);                       // 前日と担当管轄一致でtrue
+  const notNightShift  = (nightDuty[arrDayNum] == '');                                            // 24時間なしの場合でtrue
+  const switchCheck    = (getCellBackground1 === '#ffff00' || getCellBackground2 === '#ffff00');  // 転送切替完了でtrue
 
 
   // [平日] and [前日と管轄が違う] and [24Hサービス行の当日セルが空白] and [背景色が黄色でない] で実行
   if ( !offDay && !sameName && !notNightShift && !switchCheck ) {
 
+    console.log("24時間当番の転送設定の確認が取れない為、メールを送信しました！");
+
     // 夜勤当番者に電話が繋がるかの確認依頼メールを送信する。
-    const to = 'k.kamikura@isowa.co.jp';              // メールの送信先
+    const to = 'technical-support@isowa.co.jp';       // メールの送信先
     const subject = '24時間当番の電話転送設定の確認依頼';  // メールのタイトル
 
     // メールの本文
@@ -56,16 +58,16 @@ function TransferSetMail() {
                       bcc: 'k.kamikura@isowa.co.jp'};
         
     //メール送信実行
-    GmailApp.sendEmail(
-      to,
-      subject,
-      body,
-      options
-    )
+    // GmailApp.sendEmail(
+    //   to,
+    //   subject,
+    //   body,
+    //   options
+    // )
 
  };
 
- // ログ確認用(確定)
+// ログ確認用(確定)
  console.log("今月:" + nowMonth)
  console.log("前月:" + beforeMonth);
  console.log("前月の最終列:" + lastColumn);
@@ -74,14 +76,14 @@ function TransferSetMail() {
  console.log("当日の当番管轄：" + nightArea[arrDayNum]);
  console.log("前日の当番管轄：" + nightArea[arrDayNum-1]);
  console.log("当日の列番号：" + (dayNum + 1));
- console.log("２４Ｈ当番のセル背景色：" + getCellBackgrounds);
- console.log("２４Ｈ当番の当日のセル背景色：" + getCellBackground);
- console.log("２４Ｈ金曜の当日のセル背景色：" + getCellBackgroundFri);
+ console.log("土曜日当番２のセル背景色：" + saturdayBG2);
+ console.log("２４Ｈの当日のセル背景色1：" + getCellBackground1);
+ console.log("２４Ｈの当日のセル背景色2：" + getCellBackground2);
  console.log("当日の曜日:" + dayOfWeek);
- console.log("土日判定:" + offDay);
- console.log("管轄判定:" + sameName);
+ console.log("平日判定:" + !offDay);
+ console.log("管轄判定:" + !sameName);
  console.log("宿直判定:" + !notNightShift);
- console.log("切替判定:" + switchCheck);
+ console.log("切替判定:" + !switchCheck);
 
 
 };

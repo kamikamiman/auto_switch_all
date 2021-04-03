@@ -46,3 +46,7 @@
 
 */
 
+function Test() {
+  console.log("テスト実行しました！");
+}
+

@@ -69,17 +69,25 @@ function EndSwitch() {
 function StartTrigger() {
 
   // 自動切替の設定時間を設定
-  let setTimes = [ "0:00",  "0:30",  "1:00",  "1:30",  "2:00",  "2:30",  "3:00",  "3:30",  "4:00",
-                   "4:30",  "5:00",  "5:30",  "6:00",  "6:30",  "7:00",  "7:30",  "8:00",  "8:25",
-                   "9:00",  "9:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", 
-                  "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:15", 
-                  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", 
-                  "22:30", "23:00", "23:30" ];
+  let setTimes = [ "0:00",  "0:15",  "0:30",  "0:45",  "1:00",  "1:15",  "1:30",  "1:45",  "2:00",
+                   "2:15",  "2:30",  "2:45",  "3:00",  "3:15",  "3:30",  "3:45",  "4:00",  "4:15",
+                   "4:30",  "4:45",  "5:00",  "5:15",  "5:30",  "5:45",  "6:00",  "6:15",  "6:30",
+                   "6:45",  "7:00",  "7:15",  "7:30",  "7:45",  "8:00",  "8:25",  "8:45",
+                   "9:00",  "9:15",  "9:30",  "9:45", "10:00", "10:15", "10:30", "10:45", "11:00",
+                  "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15", 
+                  "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00", "15:15", "15:30",
+                  "15:45", "16:00", "16:15", "16:30", "16:45", "17:00", "17:15", "17:30", "17:45", 
+                  "18:00", "18:15", "18:30", "18:45", "19:00", "19:15", "19:30", "19:45", "20:00",
+                  "20:15", "20:30", "20:45", "21:00", "21:15", "21:30", "21:45", "22:00", "22:15", 
+                  "22:30", "22:45", "23:00", "23:15", "23:30", "23:45"
+                 ];
     
   /* 関数[delTrigger]を実行する時間帯を設定 ( プロジェクトトリガー(AutoSwitch)を削除 )             //
   // 使用済みのプロジェクトトリガー(AutoSwitch)を削除、新たにプロジェクトトリガー(AutoSwitch)を作成。 //
   // setTimesで指定した時間帯に実行。                                                         */
-  let delTimes = [ "1*00", "3*00", "6*00", "10*30", "12*30", "15*00", "18*00", "19*00", "21*30", "23*00" ];
+  let delTimes = [ "1*00", "3*00", "5*00", "7*00", "8*00", "10*00", "12*00", "14*00", "16*00",
+                  "18*00", "20*00", "22*00", "23*00"
+                 ];
   
   // フレックス実行時間とトリガー削除時間を配列に格納 ( 要素の順番に注意。 不要なトリガーを削除 >>> 新たにトリガーを作成 )
   const setDelTimes = [ delTimes, setTimes ];
@@ -204,7 +212,7 @@ const ssGet = SpreadsheetApp.openById('1WY8sAykoyiu1bbGglSWuSmGpLyQwrwXTAYwZzvK0
 // 本日の月のシート情報を取得
 const date   = new Date();                                             // 日付を取得
 const nowDay = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');        // 本日の日付のフォーマット
-  let period = 69;                                                     // 第〇〇期
+  let period = 70;                                                     // 第〇〇期
 const nowMonth = Utilities.formatDate(date, 'Asia/Tokyo', 'M');        // 本日の月を取得
 const schedule = ssGet.getSheetByName('${period}期${nowMonth}月'
                                       .replace('${period}', period)
@@ -215,6 +223,12 @@ const nextDate = new Date(date.setMonth(date.getMonth()+1));
 const nextMonth = Utilities.formatDate(nextDate, 'Asia/Tokyo', 'M');
 let nextSchedule;                // 翌月
 const nextPeriod = period + 1;   // 来期
+
+console.log(`nowDay:${nowDay}`);
+console.log(`nextDate:${nextDate}`);
+console.log(`nowMonth:${nowMonth}`);
+console.log(`nextMonth:${nextMonth}`);
+console.log(`nextPeriod:${nextPeriod}`);
 
 // 翌月が４月以外に実行
 if ( nextMonth != 4 ) {
@@ -237,34 +251,34 @@ const scheduleData = _scheduleData.getValues();                        // 情報
 const getCellBackgrounds = _scheduleData.getBackgrounds();             // セルの背景色を取得(配列)
 
 // 各情報を分割して取得
-const lunchDuty    = scheduleData[0];      // 昼当番
-const saturdayDuty = scheduleData[1];      // 土曜当番
-const nightDuty    = scheduleData[2];      // ２４Ｈ当番
-const nightArea    = scheduleData[3];      // ２４Ｈ管轄
-const days         = scheduleData[4];      // 日付
+// const lunchDuty    = scheduleData[0];      // 昼当番
+// const saturdayDuty = scheduleData[1];      // 土曜当番
+// const nightDuty    = scheduleData[2];      // ２４Ｈ当番
+// const nightArea    = scheduleData[3];      // ２４Ｈ管轄
+// const days         = scheduleData[4];      // 日付
 
-// 各情報を分割して取得(70期以降のスプレットシート更新後)
-// const lunchDuty      = scheduleData[0];      // 昼当番
-// const saturdayDutys1 = scheduleData[1];      // 土曜当番(1人目)
-// const saturdayDutys2 = scheduleData[2];      // 土曜当番(2人目)
-// const nightDutys1    = scheduleData[3];      // ２４時間(1人目)
-// const nightDutys2    = scheduleData[4];      // ２４時間(2人目)
-// const days           = scheduleData[5];      // 日付
+// 各情報を分割して取得(更新後)
+const lunchDuty      = scheduleData[0];      // 昼当番
+const saturdayDutys1 = scheduleData[1];      // 土曜当番(1人目)
+const saturdayDutys2 = scheduleData[2];      // 土曜当番(2人目)
+const nightDuty      = scheduleData[3];      // ２４時間(当番）
+const nightArea      = scheduleData[4];      // ２４時間(管轄)
+const days           = scheduleData[5];      // 日付
 
 // 各セルの背景色を分割して取得
-const lunchBG     = getCellBackgrounds[0]; // 昼当番
-const saturdayBG  = getCellBackgrounds[1]; // 土曜当番
-const nightBG     = getCellBackgrounds[2]; // ２４Ｈ当番
-const nightAreaBG = getCellBackgrounds[3]; // ２４Ｈ管轄
-const daysBG      = getCellBackgrounds[4]; // 日付
+// const lunchBG     = getCellBackgrounds[0]; // 昼当番
+// const saturdayBG  = getCellBackgrounds[1]; // 土曜当番
+// const nightBG     = getCellBackgrounds[2]; // ２４Ｈ当番
+// const nightAreaBG = getCellBackgrounds[3]; // ２４Ｈ管轄
+// const daysBG      = getCellBackgrounds[4]; // 日付
 
 // 各セルの背景色を分割して取得(更新後)
-// const lunchBG     = getCellBackgrounds[0]; // 昼当番
-// const saturdayBG1 = getCellBackgrounds[1]; // 土曜当番(1人目)
-// const saturdayBG2 = getCellBackgrounds[2]; // 土曜当番(2人目)
-// const nightBG1    = getCellBackgrounds[3]; // ２４時間(1人目)
-// const nightBG2    = getCellBackgrounds[4]; // ２４時間(2人目)
-// const daysBG      = getCellBackgrounds[5]; // 日付
+const lunchBG     = getCellBackgrounds[0]; // 昼当番
+const saturdayBG1 = getCellBackgrounds[1]; // 土曜当番(1人目)
+const saturdayBG2 = getCellBackgrounds[2]; // 土曜当番(2人目)
+const nightBG     = getCellBackgrounds[3]; // ２４時間(当番)
+const nightAreaBG = getCellBackgrounds[4]; // ２４時間(管轄)
+const daysBG      = getCellBackgrounds[5]; // 日付
 
   
 // 本日の日付のセルの列番号を取得
@@ -302,8 +316,8 @@ const nextMemColor   = nextSchedule.getRange(1, 1, nextMonLastRow, nextMonLastCo
 // -------------------------------- //
 
 const ssSet = SpreadsheetApp.openById('1Itid9HCrW0wy_ATM4lqBDzkQs64DpemrWL4THmOsEIg');                      // ここに在席リストのIDを記入(テスト用ID)
-const attendList = ssSet.getSheetByName('当日在席(69期)');                                                    // 在席リスト
-const offDayList = ssSet.getSheetByName('69期サービス土日休み');                                               // サービス土日休み
+const attendList = ssSet.getSheetByName('当日在席');                                                         // 在席リスト
+const offDayList = ssSet.getSheetByName('サービス土日休み');                                                   // サービス土日休み
 const offLastRow = offDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();       // サービス土日休みの最終行番号
 const isoOffDayList = ssSet.getSheetByName('isowa休日');                                                     // isowa休日
 const isoOffLastRow = isoOffDayList.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow(); // isowa休日の最終行番号

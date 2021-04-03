@@ -23,11 +23,11 @@ function ReadDataTest() {
   });
 
   // ログ確認用(確定)
-  console.log("targets(切替対象者):" + targets);
-  console.log("starts(切替 出社時):" + starts);
-  console.log("ends(切替 帰社時):" + ends);
-  console.log("details(切替 予定記入):" + details);
-  console.log("attendSels(東館選択):" + attendSels);
+  // console.log("targets(切替対象者):" + targets);
+  // console.log("starts(切替 出社時):" + starts);
+  // console.log("ends(切替 帰社時):" + ends);
+  // console.log("details(切替 予定記入):" + details);
+  // console.log("attendSels(東館選択):" + attendSels);
 
   // ----------------------------------------------------------------------------------------------------------- // 
   //       在席リストのメンバー情報                                                                                  //
@@ -103,22 +103,22 @@ function ReadDataTest() {
         colNum = posiR - 2;
       }
 
-      console.log("membersNameL:" + membersNameL);
-      console.log("membersNameC:" + membersNameC);
-      console.log("membersNameR:" + membersNameR);
-      console.log("nightDutyNames[i]:" + nightDutyNames[i]);
+      // console.log("membersNameL:" + membersNameL);
+      // console.log("membersNameC:" + membersNameC);
+      // console.log("membersNameR:" + membersNameR);
+      // console.log("nightDutyNames[i]:" + nightDutyNames[i]);
 
       // 配列への書込み条件
       setRowJudge = rowNum !== 0;
       setColJudge = colNum !== undefined;
       
       // ログ確認用(確定)
-      console.log("member(夜勤担当者):" + member);
-      console.log("nightDutyNames[i](在席リストのメンバー):" + nightDutyNames[i] );
-      console.log("rowNum(在席リストの行番号):" + rowNum);
-      console.log("colNum(在席リストの列番号):" + colNum);      
-      console.log("setRowJudge(実行判定1):" + setRowJudge);
-      console.log("setColJudge(実行判定2):" + setColJudge);
+      // console.log("member(夜勤担当者):" + member);
+      // console.log("nightDutyNames[i](在席リストのメンバー):" + nightDutyNames[i] );
+      // console.log("rowNum(在席リストの行番号):" + rowNum);
+      // console.log("colNum(在席リストの列番号):" + colNum);      
+      // console.log("setRowJudge(実行判定1):" + setRowJudge);
+      // console.log("setColJudge(実行判定2):" + setColJudge);
 
       if ( setRowJudge && setColJudge ) {
         nightDutysData[i].push(rowNum, colNum);                     // 配列へ行・列番号を書込
@@ -164,13 +164,21 @@ function ReadDataTest() {
       rowNum = 0;  // 行番号
       colNum = 0;  // 列番号
 　
-      // 土曜当番者と在席リストのメンバーが一致した時の行番号を取得
-      rowNum = member.indexOf(satDutyNames[i]) + 1;
-
       // 土曜当番者と在席リストメンバーが一致した時の列番号を取得
-      if ( membersNameL.indexOf(satDutyNames[i]) != -1 ) colNum = posiL - 2;
-      if ( membersNameC.indexOf(satDutyNames[i]) != -1 ) colNum = posiC - 2;
-      if ( membersNameR.indexOf(satDutyNames[i]) != -1 ) colNum = posiR - 2;
+      if ( membersNameL.indexOf(satDutyNames[i]) != -1 ) {
+        colNum = posiL - 2;
+        rowNum = membersNameL.indexOf(satDutyNames[i]) + 1;
+      }
+
+      if ( membersNameC.indexOf(satDutyNames[i]) != -1 ) {
+        colNum = posiC - 2;
+        rowNum = membersNameC.indexOf(satDutyNames[i]) + 1;
+      }
+
+      if ( membersNameR.indexOf(satDutyNames[i]) != -1 ) {
+        colNum = posiR - 2;
+        rowNum = membersNameR.indexOf(satDutyNames[i]) + 1;
+      }
 
       // 配列への書込み条件
       setRowJudge = rowNum !== 0;
@@ -201,11 +209,13 @@ function ReadDataTest() {
   let dateFormat = Utilities.formatDate(date, 'Asia/Tokyo', 'M/d');  // 日付の書式をフォーマット
 
   // ISOWA休日の書式設定
-  isowaOffDays.forEach( el => {
-                          el = Utilities.formatDate(el, 'Asia/Tokyo', 'M/d');
-                          el = String(el);
-                          isoOffFormat.push(el);
-  });
+    isowaOffDays.forEach( el => {
+                            if ( el !== '' ) {
+                              el = Utilities.formatDate(el, 'Asia/Tokyo', 'M/d');
+                              el = String(el);
+                              isoOffFormat.push(el);
+                            }
+    });
 
 
   // -------------------------------------------------------------------------- // 
@@ -520,7 +530,13 @@ function ReadDataTest() {
         let flexFull = false;          // 完全フレックス判定
         let timeDiff1 = false;         // 時差判定
         let timeDiff2 = false;         // 時短判定
+        let halfBeforeHol  = false;    // 半休判定(午前)
+        let halfAfterHol   = false;    // 半休判定(午後)
         let notGoTimeJudge = true;     // 外出・出張時の出発時間指定無し判定
+        let goConts, flexConts;        // 予定が外出(出張)・フレックスで併用の場合の格納先
+        let doubleConts;               // 外出(出張)・フレックスで併用の場合の予定
+        const falfHols = [ halfBeforeHol, halfAfterHol ];
+
                                         
         // 今月の曜日・予定を取得
         if ( func === "thisMon" ) {
@@ -574,16 +590,90 @@ function ReadDataTest() {
         // 時短出勤判定
         timeDiff2 = conts.indexOf("時短") !== -1;
 
+        // 時差・時短
+        const timeDiffs = [ timeDiff1, timeDiff2 ];
+
+        // 半休判定(午前)
+        halfBeforeHol = conts.indexOf("午前半休") !== -1;
+        if ( halfBeforeHol ) {
+          status += "午前半休";
+          if ( i === 0 ) this.strHalfTime = "12:45";
+        }
+
+        // 半休判定(午後)
+        halfAfterHol = conts.indexOf("午後半休") !== -1;
+        if ( halfAfterHol ) {
+          status += "午後半休";
+          if ( i === 0 ) this.endHalfTime = "12:00";
+        }
+
+        // 併用判定
+        const goFlexJudge = (goOut || trip || atHome) && flex;               // 外出(出張)・フレックスの併用
+        const atHomeHalfJudge = atHome && ( halfBeforeHol || halfAfterHol ); // 在宅・半休の併用 20210318_追加
+        const atHomeDiffJudge = atHome && ( timeDiff1 || timeDiff2 );        // 在宅・時短(時差)の併用 20210318_追加
+        const halfSlashJudge = conts.indexOf('/') !== -1;
+        const slashJudge = conts.indexOf('／') !== -1;
+        // const doubleJudge = ( goFlexJudge ) && ( halfSlashJudge || slashJudge ); // 20210318_修正
+        const doubleJudge = ( goFlexJudge || atHomeHalfJudge || atHomeDiffJudge ) && ( halfSlashJudge || slashJudge ); // 20210318_修正
+
+
+        // ログ確認用
+        // console.log(`this.name(メンバー): ${this.name}`);
+        // console.log(`goFlexJudge(外出・フレ状態判定): ${goFlexJudge}`);
+        // console.log(`atHomeHalfJudge(在宅・半休状態判定): ${atHomeHalfJudge}`);
+        // console.log(`atHomeDiffJudge(在宅・時差状態判定): ${atHomeDiffJudge}`);
+        // console.log(`halfSlashJudge('/'存在判定): ${halfSlashJudge}`);
+        // console.log(`slashJudge('／'存在判定): ${slashJudge}`);
+        // console.log(`doubleJudge(併用処理実行判定): ${doubleJudge}`);
+        // console.log(`this.strHalfTime(午前半休判定): ${this.strHalfTime}`);
+        // console.log(`this.endHalfTime(午後半休判定): ${this.endHalfTime}`);
+        // console.log(`conts(予定): ${conts}`);
+
+
+        // 外出(出張)とフレックスが併用の場合
+        if ( doubleJudge ) {
+
+          // 当日の予定を分割
+          if ( halfSlashJudge ) doubleConts = conts.split('/');
+          if ( slashJudge ) doubleConts = conts.split('／');
+
+          // 分割文字列の前半がフレックスかの判定
+          const flexJudge = flexPatterns.some( el => doubleConts[0].indexOf(el) !== -1 );
+
+          // 分割文字列の前半が半休かの判定
+          const halfHolJudge = falfHols.some( el => doubleConts[0].indexOf(el) !== -1 );
+
+          // 分割文字列の前半が時差・時短かの判定
+          const diffJudge = timeDiffs.some( el => doubleConts[0].indexOf(el) !== -1 );
+
+
+          // ログ確認用
+          // console.log(`flexJudge(前半フレ判定): ${flexJudge}`);        
+
+          // 分割文字列を変数に格納
+          // if ( (goFlexJudge && flexJudge) ) {
+          if ( (goFlexJudge && flexJudge) || (atHomeHalfJudge && halfHolJudge) || (atHomeDiffJudge && diffJudge) ) {
+            flexConts = doubleConts[0];
+            goConts   = doubleConts[1];
+          } else {
+            flexConts = doubleConts[1];
+            goConts   = doubleConts[0];
+          }
+
+          // ログ確認用
+          // console.log(`flexConts(フレ予定): ${flexConts}`);        
+          // console.log(`goConts(外出予定): ${goConts}`);        
+
+        }
 
         if ( (timeDiff1 || timeDiff2 || flex) && !flexFull ) {
 
-          // 20210209_0940_フレックスの記載方法が違っていた場合はキャンセルする処理
-          timeAndConts = this.FlexTimeAndConts(conts, func);
+          if ( doubleJudge ) timeAndConts = this.FlexTimeAndConts(flexConts, func);
+          else timeAndConts = this.FlexTimeAndConts(conts, func);
 
           if ( !timeAndConts[2] && !timeDiff1 && !timeDiff2 ) status += "ﾌﾚ";
           if ( timeDiff1 ) status += "時差";
           if ( timeDiff2 ) status += "時短";
-
           
           // 直近のフレックスを予定取得時に実行
           if ( func === "thisMon" && t === 0 && !timeAndConts[2] ) {
@@ -599,30 +689,38 @@ function ReadDataTest() {
 
         // 20210218_追加
         if ( (trip || goOut) && n === 0 ) {
-          this.FlexTimeAndConts(conts, func);
+          if ( doubleJudge ) this.FlexTimeAndConts(goConts, func);
+          else this.FlexTimeAndConts(conts, func);
 
-          let decimalPoint0, decimalPoint5;
+          let decimalPoint00, decimalPoint50;
+          let decimalPoint25, decimalPoint75;
           let goOutTime = this.goOutTime;
 
-          console.log("this.numJudge:" + this.numJudge);
+          // console.log("this.numJudge:" + this.numJudge);
    
           if ( this.numJudge ) {
-            console.log("goOutTime:" + goOutTime);
-            decimalPoint0  = goOutTime.indexOf('.0');        // 小数点の位置
-            decimalPoint5  = goOutTime.indexOf('.5');        // 小数点の位置
-            notGoTimeJudge = goOutTime == '';                // 外出時間設定なし判定
+            // console.log("goOutTime:" + goOutTime);
+            decimalPoint00  = goOutTime.indexOf('.0');        // 小数点の位置
+            decimalPoint25  = goOutTime.indexOf('.25');       // 小数点の位置
+            decimalPoint50  = goOutTime.indexOf('.5');        // 小数点の位置
+            decimalPoint75  = goOutTime.indexOf('.75');       // 小数点の位置
+            notGoTimeJudge = goOutTime == '';                 // 外出時間設定なし判定
 
-            if ( decimalPoint0 !== -1 ) {
-              goOutTime = goOutTime.replace('.0', ':00');    // 小数点を含む場合、[.0]>>>[:00]へ変換
-            } else if ( decimalPoint5 !== -1 ) {
-              goOutTime = goOutTime.replace('.5', ':30');    // 小数点を含む場合、[.5]>>>[:30]へ変換
+            if ( decimalPoint00 !== -1 ) {
+              goOutTime = goOutTime.replace('.0', ':00');     // 小数点を含む場合、[.0]>>>[:00]へ変換
+            } else if ( decimalPoint25 !== -1 ) {
+              goOutTime = goOutTime.replace('.25', ':15');    // 小数点を含む場合、[.25]>>>[:15]へ変換
+            } else if ( decimalPoint50 !== -1 ) {
+              goOutTime = goOutTime.replace('.5', ':30');     // 小数点を含む場合、[.5]>>>[:30]へ変換
+            } else if ( decimalPoint75 !== -1 ) {
+              goOutTime = goOutTime.replace('.75', ':45');    // 小数点を含む場合、[.75]>>>[:45]へ変換
             } else if ( !notGoTimeJudge ) {
               goOutTime = goOutTime.replace(goOutTime, `${goOutTime}:00`);  // 小数点を含まない場合、[:00]を追加
             } else {
               goOutTime = undefined;
             }
 
-            console.log("goOutTime:" + goOutTime);
+            // console.log("goOutTime:" + goOutTime);
             this.strGoTime = goOutTime;
           }
           n++;  // 出発時間確定(上書きを禁止するため)
@@ -701,8 +799,10 @@ function ReadDataTest() {
         const work    = el.indexOf('出勤') !== -1;      // 出勤判定
         const flex    = el.indexOf('ﾌﾚ') !== -1;        // フレックス判定
         const fullFlexJudge = el.indexOf(fullFlex) !== -1; // 完全フレックス判定
-        const timeDiff1 = el.indexOf('時差') !== -1;
-        const timeDiff2 = el.indexOf('時短') !== -1;
+        const timeDiff1     = el.indexOf('時差') !== -1;
+        const timeDiff2     = el.indexOf('時短') !== -1;
+        const halfBeforeHol = el.indexOf('午前半休')　!== -1;
+        const halfAfterHol  = el.indexOf('午後半休') !== -1;
 
 
         // 状態判定によって変数[status]に格納
@@ -725,6 +825,9 @@ function ReadDataTest() {
         } else {
           status = "在席";
         }
+
+        if ( halfBeforeHol  ) status += ' 午前半休';
+        if ( halfAfterHol   ) status += ' 午後半休';
       
         // フレックス判定がtrueの場合
       if( flex || timeDiff1 || timeDiff2 ) status = el;
@@ -735,6 +838,8 @@ function ReadDataTest() {
         i++;  // 配列[offHolJudges]内の参照先を次の要素に切替
                             
       });
+
+      // console.log("予定：" + statusArr);
 
     }
     
@@ -790,7 +895,11 @@ function ReadDataTest() {
     /  ======================================================================== */
     
     FlexTimeAndConts(conts, funcMonth) {
-      
+
+      // ログ確認用
+      // console.log(`conts: ${conts}`);
+      // console.log(`funcMonth: ${funcMonth}`);
+
       // 変数の初期化
       let flexTime = '';
       let flexConts = '';
@@ -816,7 +925,7 @@ function ReadDataTest() {
       } else if ( fullJudge ) {
         _flexTime  = conts.split('フレ');
       } else {
-         console.log("フレックス：不明");
+        //  console.log("フレックス：不明");
       }
 
       if ( timeDiff1 ) _flexTime = conts.split('時差');
@@ -827,10 +936,10 @@ function ReadDataTest() {
       let above = _flexTime[0];             // 前半の文字列
       let below = _flexTime[1];             // 後半の文字列
 
-      console.log("conts:" + conts);
-      console.log("_flexTime:" + _flexTime);
-      console.log("above:" + above);
-      console.log("below:" + below);
+      // console.log("conts:" + conts);
+      // console.log("_flexTime:" + _flexTime);
+      // console.log("above:" + above);
+      // console.log("below:" + below);
 
 
       // フレックス記入方法が違っていた場合 20210209_0940_追加
@@ -839,10 +948,15 @@ function ReadDataTest() {
 
       // 出張・外出時に状態切替の時間を取得 20200218_追加
       if ( goOut || trip ) {
-        const okNumber = [  1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5,
-                            8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5,
-                           14, 14.5, 15, 15.5, 16, 16.5, 17, 17.5, 18, 18.5, 19,
-                           19.5, 20, 20.5, 21, 21.5, 22, 22.5, 23, 23.5, 24 ];
+        const okNumber = [  1,  1.25,  1.5,  1.75,  2,  2.25,  2.5,  2.75,  3,  3.25,  3.5,  3.75,
+                            4,  4.25,  4.5,  4.75,  5,  5.25,  5.5,  5.75,  6,  6.25,  6.5,  6.75,
+                            7,  7.25,  7.5,  7.75,  8,  8.25,  8.5,  8.75,  9,  9.25,  9.5,  9.75,
+                           10, 10.25, 10.5, 10.75, 11, 11.25, 11.5, 11.75, 12, 12.25, 12.5, 12.75,
+                           13, 13.25, 13.5, 13.75, 14, 14.25, 14.5, 14.75, 15, 15.25, 15.5, 15.75,
+                           16, 16.25, 16.5, 16.75, 17, 17.25, 17.5, 17.75, 18, 18.25, 18.5, 18.75,
+                           19, 19.25, 19.5, 19.75, 20, 20.25, 20.5, 20.75, 21, 21.25, 21.5, 21.75,
+                           22, 22.25, 22.5, 22.75, 23, 23.25, 23.5, 23.75
+                         ];
 
         blankJudge = above.search(/\s/) !== -1;  // 外出・出張の前の文字列に空白を含むかの判定
 
@@ -861,16 +975,16 @@ function ReadDataTest() {
             above = '';
           }
 
-          console.log("numJudge:" + numJudge);
-          console.log(Number(goOutTime));
-          console.log("Number(goOutTime):" + Number(goOutTime));
-          console.log("above:" + above);
-          console.log("comparison:" + comparison);
+          // console.log("numJudge:" + numJudge);
+          // console.log(Number(goOutTime));
+          // console.log("Number(goOutTime):" + Number(goOutTime));
+          // console.log("above:" + above);
+          // console.log("comparison:" + comparison);
         }       
       }
 
       // オブジェクトに追加_20210218_追加
-      console.log("funcMonth:" + funcMonth);
+      // console.log("funcMonth:" + funcMonth);
       if ( funcMonth === "thisMon" ) {
         this.numJudge = numJudge;
         this.goOutTime = goOutTime;
@@ -925,16 +1039,24 @@ function ReadDataTest() {
           times = el.slice(0, blankNum);
           getConts = el.slice(blankNum);          
         }
+
+        // console.log("時間:" + times);
       
         if ( blankNum !== 0 ) times = this.Hankaku(times);      // 全角数字>>半角数字に変換
         if ( blankNum === 0 ) times = times.trim();             // スペースを削除
-        const decimalPoint0 = times.indexOf('.0');              // 小数点の位置
-        const decimalPoint5 = times.indexOf('.5');              // 小数点の位置
+        const decimalPoint00 = times.indexOf('.0');             // 小数点の位置
+        const decimalPoint25 = times.indexOf('.25');            // 小数点の位置
+        const decimalPoint50 = times.indexOf('.5');             // 小数点の位置
+        const decimalPoint75 = times.indexOf('.75');            // 小数点の位置
 
-        if ( decimalPoint0 !== -1 ) {
-          times = times.replace('.0', ':00');    // 小数点を含む場合、[.0]>>>[:00]へ変換
-        } else if ( decimalPoint5 !== -1 ) {
-          times = times.replace('.5', ':30');    // 小数点を含む場合、[.5]>>>[:30]へ変換
+        if ( decimalPoint00 !== -1 ) {
+          times = times.replace('.0', ':00');     // 小数点を含む場合、[.0]>>>[:00]へ変換
+        } else if ( decimalPoint25 !== -1 ) {
+          times = times.replace('.25', ':15');    // 小数点を含む場合、[.25]>>>[:15]へ変換
+        } else if ( decimalPoint50 !== -1 ) {
+          times = times.replace('.5', ':30');     // 小数点を含む場合、[.5]>>>[:30]へ変換
+        } else if ( decimalPoint75 !== -1 ) {
+          times = times.replace('.75', ':45');    // 小数点を含む場合、[.75]>>>[:45]へ変換
         } else {
           // 開始時間・終了時間が存在する場合に実行
           if ( aboveNow && !emptyStrAbo && blankNum || belowNow && !emptyStrBel && blankNum ) {
@@ -982,39 +1104,46 @@ function ReadDataTest() {
 
 
     /* ========================================================================= /
-    /  ===  フレックスの実行時間範囲を取得　[ メソッド ]                               === /
+    /  ===  フレックスの実行時間範囲を取得　[ メソッド ]  更新日(20210310)           === /
     /  ======================================================================== */
 
     FlexTimeRange() {
       
       // 配列
-      const strEndFlexTime = [ this.strFlexTime, this.endFlexTime ]; // 開始・終了時間を配列に格納
-      const strGoOutTime = [ this.strGoTime ];                       // 外出・出張時の出発時間を配列に格納
-      let strRange = [];                                             // 開始の範囲を初期化
-      let endRange = [];                                             // 終了の範囲を初期化
-      const npFlexTime = [ strRange, endRange ];                     // 開始・終了時間の許容範囲を格納
-      let notExecStrEnd = [ false, false ];                          // 出社・帰宅トリガー実行判定
+      const strEndFlexTime = [ this.strFlexTime, this.endFlexTime, 0 ]; // フレックスの開始・終了時間, フレ判定を配列に格納 (第3引数 0:フレ判定, 1:外出判定)
+      const strGoOutTime   = [ this.strGoTime, undefined,  1 ];         // 外出・出張時の出発時間, 外出判定を配列に格納 (第3引数 0:フレ判定, 1:外出判定)
+      const strEndHalfTime = [ this.strHalfTime, this.endHalfTime, 0 ]; // 半休の開始・終了時間を配列に格納
+      let strRange = [];                                                // 開始の範囲を初期化(フレックス・時短・時差・半休)
+      let endRange = [];                                                // 終了の範囲を初期化(フレックス・時短・時差・半休)
+      const npFlexTime = [ strRange, endRange ];                        // 開始・終了時間の許容範囲を格納(フレックス・時短・時差・半休)
+      let goStrRange = [];                                              // 開始の範囲を初期化(外出・出張)
+      let goEndRange = [];                                              // 終了の範囲を初期化(外出・出張)
+      const npGoTime   = [ goStrRange, goEndRange ];                    // 開始・終了時間の許容範囲を格納(外出・出張)
+      let notExecStrEnd = [ false, false ];                             // 出社・帰宅トリガー実行判定
       
-      // // 変数の初期化
-      // let i = 0;         // 配列[pnFlexTime]の要素指定に使用
+      // フレックスの場合に実行
+      if ( this.strFlexTime !== undefined || this.endFlexTime !== undefined ) notExecStrEnd = GetTimeRanges(strEndFlexTime);
 
-      // フレックスの場合に実行。
-      if ( this.strFlexTime !== undefined || this.endFlexTime !== undefined ) notExecStrEnd = getFlexTime(strEndFlexTime);
-      if ( this.strGoTime !== undefined ) getFlexTime(strGoOutTime);
-      
+      // 外出の場合に実行
+      if ( this.strGoTime !== undefined ) GetTimeRanges(strGoOutTime);
+
+      // 半休の場合に実行
+      if ( this.strHalfTime !== undefined || this.endHalfTime !== undefined ) GetTimeRanges(strEndHalfTime);
+
+
       // ① 開始時間・終了時間の範囲をそれぞれ取得。
       // ② フレックス開始時間が、通常の出社時間より遅い場合の判定結果を取得。
       // ③ フレックス終了時間が、通常の帰宅時間より遅い場合の判定結果を取得
-      function getFlexTime(strEndTime) {
+      function GetTimeRanges(strEndTime) {
 
-        let setTime = strEndTime;
+        let setTime = [ strEndTime[0], strEndTime[1] ];  // 開始・終了時間
+        const judgeNum = strEndTime[2];                  // 種別判定(フレ or 外出・出張) 0:フレ, 1:外出・出張
 
         let noExecStr = false;
         let noExecEnd = false;
         const noExec = [];
         
-        console.log("setTime:" + setTime);
-        // strEndFlexTime.forEach( el => {
+        // console.log("setTime:" + setTime);
 
         // 変数の初期化
         let i = 0;         // 配列[pnFlexTime]の要素指定に使用
@@ -1023,7 +1152,10 @@ function ReadDataTest() {
 
           // 分割 ( 時間 ・ 分 )
           // @ts-ignore
-          console.log("el:" + el);
+          // console.log("el:" + el);
+
+          if ( el === undefined ) el = '';
+
           const hourMinutes = el.split(':');
           let hours = Number(hourMinutes[0]);                // 時間
           const minutes = Number(hourMinutes[1]);            // 分
@@ -1041,28 +1173,43 @@ function ReadDataTest() {
             nHours = hours - 1;                     // 時間を[hours - 1]
             if ( hours === 0 ) nHours = 23;         // 時間が0時だったら、23時に変更
             pHours = hours;
-            nMinutes = 50;                          // 分を[50]
-            pMinutes = 10;                          // 分を[10]
+            nMinutes = 57;                          // 分を[50]
+            pMinutes = 3;                          // 分を[10]
+
+          // [:15]分だった場合
+          } else if ( minutes === 15 ) {
+            nHours = hours;
+            pHours = hours;
+            nMinutes = 12;                          // 分を[50]
+            pMinutes = 18;                          // 分を[10]
         
           // [:30]分だった場合
           } else if ( minutes === 30 ) {
             nHours   = hours;
             pHours   = hours;
-            nMinutes = 20;                          // 分を[20]
-            pMinutes = 40;                          // 分を[40]
+            nMinutes = 27;                          // 分を[20]
+            pMinutes = 33;                          // 分を[40]
+
+          // [:45]分だった場合
+          } else if ( minutes === 45 ) {
+            nHours = hours;
+            pHours = hours;
+            nMinutes = 42;                          // 分を[50]
+            pMinutes = 48;                          // 分を[10]
           }
 
           console.log("時間範囲:" + nHours, nMinutes, pHours, pMinutes);
        
-          // ① 配列に開始時間・終了時間の範囲を格納
-          npFlexTime[i].push(nHours, nMinutes, pHours, pMinutes);   // 配列に追加
+          // 種別判定がフレックスの場合に実行
+          if ( judgeNum === 0 ) {
+            npFlexTime[i].push(nHours, nMinutes, pHours, pMinutes);    // ① 配列に開始時間・終了時間の範囲を格納
+            if ( el === setTime[0] && hours >=  9 ) noExecStr = true;  // ② フレックス開始時間が8時以降の判定結果を格納
+            if ( el === setTime[1] && hours >= 18 ) noExecEnd = true;  // ③ フレックス終了時間が18時以降の判定結果を格納
+          }
 
-          // ② フレックス開始時間が8時より遅い場合の判定結果を格納
-          if ( el === setTime[0] && hours >=  9 ) noExecStr = true;
+          // 種別判定が外出・出張の場合に実行
+          if ( judgeNum === 1 ) npGoTime[i].push(nHours, nMinutes, pHours, pMinutes); // 配列に開始時間・終了時間の範囲を格納
 
-          // ③ フレックス終了時間が18時より遅い場合の判定結果を格納
-          if ( el === setTime[1] &&　hours >= 18 ) noExecEnd = true;
-      
           i++; // 配列の追加先を変更
 
         });
@@ -1071,13 +1218,23 @@ function ReadDataTest() {
 
         return noExec;
       }
+
   
       // オブジェクトに追加
       this.strRange = strRange;
       this.endRange = endRange;
       this.notExecStr = notExecStrEnd[0];
       this.notExecEnd = notExecStrEnd[1];
-  
+      this.goStrRange = goStrRange;
+      this.goEndRange = goEndRange;
+
+      console.log(`strRange(フレ開始範囲): ${strRange}`);
+      console.log(`endRange(フレ終了範囲): ${endRange}`);
+      // console.log(`notExecStr(フレ8時以降判定): ${notExecStr}`);
+      // console.log(`notExecEnd(フレ18時以降判定): ${notExecEnd}`);
+      console.log(`goStrRange(外出開始範囲): ${goStrRange}`);
+      console.log(`goEndRange(外出終了範囲): ${goEndRange}`);
+
     }
     
     
@@ -1110,12 +1267,13 @@ function ReadDataTest() {
     AddSchedPeriod(period) {
 
       // 変数の初期化
-      let dayStatus      = '';
-      let dayStatusFlex  = '';
-      let latestSched    = '';
-      let periodStart    = '';
-      let periodEnd      = '';
-      let writePeriod    = '';
+      let dayStatus         = '';
+      let dayStatusFlex     = '';
+      let dayStatusHalfHol  = '';
+      let latestSched       = '';
+      let periodStart       = '';
+      let periodEnd         = '';
+      let writePeriod       = '';
       let twoMonthPlus      = [];
       let twoMonthSched     = [];
       let nextTwoMonthPlus  = [];
@@ -1138,7 +1296,7 @@ function ReadDataTest() {
       twoMonthSched = this.monContents.concat(this.nextMonContents); // 2ヶ月分の予定[配列]
 
       // ログ確認用(確定)
-      console.log("twoMonthSched:" + twoMonthSched);
+      // console.log("twoMonthSched:" + twoMonthSched);
       
       // 取得期間が翌日〜で指定された場合、当日予定を帰宅に変更
       if ( period === 1 ) {
@@ -1169,7 +1327,7 @@ function ReadDataTest() {
 
 
       // 変数の初期化 (20210209)
-      let _comparisons, comparisons, destination;
+      let __comparisons, _comparisons, comparisons, destination, goTime;
       let _destinationArr = [];
       let destinationArr  = [];
 
@@ -1186,27 +1344,50 @@ function ReadDataTest() {
         const satDuty     = el.indexOf('当番') !== -1;
         const timeDiff1   = el.indexOf('時差') !== -1;
         const timeDiff2   = el.indexOf('時短') !== -1;
+        const halfBeforeHol = el.indexOf('午前半休') !== -1;
+        const halfAfterHol  = el.indexOf('午後半休') !== -1;
 
-        // 外出 or 出張の場合、配列に行き先を格納(20210214)
+        // console.log(`name(メンバー): ${this.name}`);
+        // console.log(`el(予定): ${el}`);
+        // console.log(`trip(出張判定): ${trip}`);
+
+        // 外出 or 出張の場合、配列に行き先を格納
         if ( goOut || trip ) {
-          if ( goOut ) _comparisons = twoMonthsS[i].split("外出");
-          if ( trip ) _comparisons = twoMonthsS[i].split("出張");
-          comparisons = _comparisons[0].trim();
+          if ( goOut ) __comparisons = twoMonthsS[i].split("外出");
+          if ( trip ) __comparisons = twoMonthsS[i].split("出張");
 
-          let blankJudge = comparisons.search(/\s/) !== -1;  // 外出・出張の前の文字列に空白を含むかの判定
+　　　　　　// 文字列__conparisonsにスラッシュを含むか?
+          const halfSlashJudge = __comparisons[0].indexOf('/') !== -1;
+          const slashJudge = __comparisons[0].indexOf('／') !== -1;
+          if ( halfSlashJudge || slashJudge ) {
+            if ( halfSlashJudge ) _comparisons = __comparisons[0].split('/');
+            if ( slashJudge ) _comparisons = __comparisons[0].split('／');
+            comparisons = _comparisons[1].trim();
+          } else {
+            comparisons = __comparisons[0].trim();
+          }
 
-          // 空白を含む場合,訪問先と出発時間を取得し、訪問先のみ格納
+          // 文字列comparisons(行き先)に空白を含む場合,訪問先と出発時間を取得
+          let blankJudge = comparisons.search(/\s/) !== -1;
           if ( blankJudge ) {
             const compAndTime = comparisons.split(/\s/);           // 訪問先と出発時間を分割
             comparisons = compAndTime[0];                          // 訪問先
+            goTime = compAndTime[1];                               // 出発時間
           }
 
+          // ログ確認用
+          // console.log(`blankJudge(空白判定): ${blankJudge}`);
+          // console.log(`comparisons(外出先): ${comparisons}`);
+          // console.log(`goTime(出発時間): ${goTime}`);
+
+
           if ( (dayStatus === el) && !getDestination ) _destinationArr.push(comparisons);
-          console.log("_destinationArr:" + _destinationArr)
+          // console.log("_destinationArr:" + _destinationArr)
         }
                 
         // 在席状態の格納条件
-        const slctStatus = ( offDayJudge || goOut || trip || atHome || flex || timeDiff1 || timeDiff2 || satDuty ) && dayStatus === '' ;        
+        const storageJudge = offDayJudge || goOut || trip || atHome || flex || timeDiff1 || timeDiff2 || satDuty || halfBeforeHol || halfAfterHol;
+        const slctStatus = storageJudge && dayStatus === '' ;        
       
         // 予定が休み・外出・出張・在宅・フレックスの場合、[daystatus]に在席状態を格納
         if ( slctStatus ) {
@@ -1217,7 +1398,9 @@ function ReadDataTest() {
           }
 
           // フレックスの場合、状態とフレックス時間を分割して格納
-          if ( (flex || timeDiff1 || timeDiff2) && !(goOut || trip) ) {
+          // if ( (flex || timeDiff1 || timeDiff2) && !(goOut || trip) ) { // 20210314_修正
+          if ( flex || timeDiff1 || timeDiff2 ) {
+
             // 在席以外の予定の場合
             if ( !attend ) {
               dayStatusFlex = dayStatus.slice(2);     // フレックス時間
@@ -1230,11 +1413,20 @@ function ReadDataTest() {
               dayStatus     = dayStatusFlex;          // 状態
             }
           }
+
+          console.log(`dayStatusFlex:${dayStatusFlex}`);
+          console.log(`dayStatus:${dayStatus}`);
+
+          // 半休の予定の場合
+          if ( halfBeforeHol ) dayStatusHalfHol = "午前半休";
+          if ( halfAfterHol  ) dayStatusHalfHol = "午後半休";
+
         }
 
       
         // フレックスの場合に実行
-        if ( (flex || timeDiff1 || timeDiff2) && !(goOut || trip) ) {
+        // if ( (flex || timeDiff1 || timeDiff2) && !(goOut || trip) ) { _20210314_修正
+        if ( flex || timeDiff1 || timeDiff2 ) {
           if ( !attend ) el = el.slice(0, 2); // 在席以外の場合
           if ( attend ) el = el.slice(2);     // 在席の場合   
         }
@@ -1266,15 +1458,15 @@ function ReadDataTest() {
           getDestination = true;
           stateArr = stateArr.slice(iStart, iEnd);                // 配列[twoMonStatus]のi番目より後の要素を削除
 
-          console.log("name:" + this.name);
-          console.log("iEnd:" + iEnd);
-          console.log("j:" + j);
-          console.log("i:" + i);
-          console.log("el:" + el);
-          console.log("dayStatus:" + dayStatus);
-          console.log("periodStart:" + periodStart);
-          console.log("periodEnd:" + periodEnd);
-          console.log("getDestination:" + getDestination);
+          // console.log("name:" + this.name);
+          // console.log("iEnd:" + iEnd);
+          // console.log("j:" + j);
+          // console.log("i:" + i);
+          // console.log("el:" + el);
+          // console.log("dayStatus:" + dayStatus);
+          // console.log("periodStart:" + periodStart);
+          // console.log("periodEnd:" + periodEnd);
+          // console.log("getDestination:" + getDestination);
           
         }
       
@@ -1299,12 +1491,15 @@ function ReadDataTest() {
       const atHome      = dayStatus.indexOf('在宅') !== -1;
       const flex        = dayStatusFlex.indexOf('ﾌﾚ') !== -1;
       // @ts-ignore
-      const fullFlexJudge = dayStatus.indexOf(fullFlex) !== -1;
-      const satDuty     = dayStatus.indexOf('当番') !== -1;
-      const timeDiff1 = dayStatus.indexOf('時差') !== -1;
-      const timeDiff2 = dayStatus.indexOf('時短') !== -1;
+      const fullFlexJudge  = dayStatus.indexOf(fullFlex) !== -1;
+      const satDuty        = dayStatus.indexOf('当番') !== -1;
+      const timeDiff1      = dayStatusFlex.indexOf('時差') !== -1;         // 20210319_修正
+      const timeDiff2      = dayStatusFlex.indexOf('時短') !== -1;         // 20210319_修正
+      const halfBeforeHol  = dayStatusHalfHol.indexOf('午前半休') !== -1;
+      const halfAfterHol   = dayStatusHalfHol.indexOf('午後半休') !== -1;
 
       // 予定期間の書込内容
+      console.log("予定内容：" + dayStatus);
 
       // 予定期間が １日 だった場合
       if ( stateArr.length <= 1 ) {
@@ -1323,7 +1518,8 @@ function ReadDataTest() {
       if ( offDayJudge ) writePeriod += ' 休み';
         
       // 予定内容が 外出・出張 だった場合
-      if ( (goOut || trip) && !flex && !timeDiff1 && !timeDiff2 ) {
+      // if ( (goOut || trip) && !flex && !timeDiff1 && !timeDiff2 ) { 20210314_修正
+      if ( goOut || trip ) {
         
         // 配列内の重複する行き先を削除
         destinationArr = _destinationArr.filter((value, index, self) => self.indexOf(value) === index);
@@ -1345,17 +1541,36 @@ function ReadDataTest() {
 
       }
                 
-      // 予定内容が 在宅 だった場合
+      // 予定内容が 在宅 だった場合、「在宅」の文字を記入
       if ( atHome ) writePeriod += ' 在宅';
-        
-      // 予定内容が フレックス だった場合
-      if ( (flex || timeDiff1 || timeDiff2) && !(goOut || trip) && !fullFlexJudge ) writePeriod += ` ${dayStatusFlex}`;
 
-      // 時短の場合
+      console.log("予定記入1:" + writePeriod);
+        
+      // 予定内容が フレックス だった場合、フレックスの時間を記入
+      // if ( (flex || timeDiff1 || timeDiff2) && !(goOut || trip) && !fullFlexJudge ) writePeriod += ` ${dayStatusFlex}`; 20210314_修正
+      console.log(`flex(実行条件1-1):${flex}`);
+      console.log(`timeDiff1(実行条件1-2):${timeDiff1}`);
+      console.log(`timeDiff2(実行条件1-3):${timeDiff2}`);
+      console.log(`fullFlexJudge(実行条件2-1):${fullFlexJudge}`);
+      console.log(`実行条件:${(flex || timeDiff1 || timeDiff2) && !fullFlexJudge}`);
+
+      if ( (flex || timeDiff1 || timeDiff2) && !fullFlexJudge ) {
+        console.log("フレックス・時短・時差です！");
+        console.log(`dayStatusFlex:${dayStatusFlex}`);
+        writePeriod += ` ${dayStatusFlex}`;
+      }
+
+      // 予定内容が 時短 だった場合、「時短」の文字を削除
       if ( timeDiff2 ) writePeriod = writePeriod.replace('時短','');
 
-      // 予定内容が 当番 だった場合
+      // 予定内容が 当番 だった場合、「当番」の文字を記入
       if ( satDuty ) writePeriod += ' 当番';
+
+      // 予定内容が 半休 だった場合、「午前半休」or 「午後半休」の文字を記入
+      if ( halfBeforeHol ) writePeriod += ' 午前半休';
+      if ( halfAfterHol  ) writePeriod += ' 午後半休';
+
+      console.log("予定記入2:" + writePeriod);
 
 
       return writePeriod;
@@ -1379,7 +1594,9 @@ function ReadDataTest() {
     const nextRow  = nextMembers.indexOf(target) + 1;     // 行番号 （翌日）
 
     // ログ確認用(確定)
-    console.log("row(サービス作業予定表の行番号):" + row);
+    console.log("【name(メンバー)】:" + target);
+    console.log("row(予定表の行番号 -今月-):" + row);
+    console.log("row(予定表の行番号 -翌月-):" + nextRow);
 
     // オブジェクト作成(予定表に名前があるメンバーのみ実行)
     if ( row > 0 && nextRow > 0) {
@@ -1391,10 +1608,6 @@ function ReadDataTest() {
       obj.GetNowAttendance();                                // {obj} に在席状態と予定詳細を追加
       obj.GetSchedPeriod();                                  // {obj} に当日・翌日の予定(期間)を追加
 
-      // ログ確認用(確定)
-      console.log("メンバー:" + obj.name);
-
-      // {obj}を[memberObj]に追加
       membersObj.push(obj);
     }
 

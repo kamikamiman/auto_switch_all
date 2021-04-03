@@ -24,14 +24,9 @@ function GetNightDutys() {
   const dutysFriJudge = nightDutysFri.indexOf('/') != -1;          // 当番2名判定(金曜日)
 
   // 金曜日以外 and セルに[/]を含む場合に実行
-  if ( !friday && dutysJudge ) {
+  if ( dutysJudge ) {
     nightDuty1 = nightDutys.split('/')[0];        // 1人目
     nightDuty2 = nightDutys.split('/')[1];        // 2人目
-
-  // 金曜日 and セルに[/]を含む場合に実行
-  } else if ( friday && dutysFriJudge ) {
-    nightDuty1 = nightDutysFri.split('/')[0];        // 1人目
-    nightDuty2 = nightDutysFri.split('/')[1];        // 2人目
   }
   
   // スプレットシートの行と列を反転させる。
@@ -67,7 +62,8 @@ function GetNightDutys() {
 
 
   // [関数]メール送信の実行条件
-  const sendTimer = ( nowHours == "7" && nowMinutes >= "25" );
+  const sendTimer = ( nowHours == "16" && nowMinutes >= "40" && nowMinutes < "50" );
+
 
   // 実行時間が16時台だったら実行
   // NightSendMail();
@@ -144,7 +140,7 @@ function GetNightDutys() {
 
       // メールの送信先
       // let to = [ nightAddress1,nightAddress2 ];
-      let to = [ "k.kamikura@isowa.co.jp", "kamikurakenta@gmail.com" ];
+      let to = [ "k.kamikura@isowa.co.jp" ];
 
 
       // メールのタイトル
